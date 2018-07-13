@@ -12,3 +12,10 @@ project/boot/
 project/plugins/project/
 project/project
 project/target
+
+# IntelliJ
+.idea/
+*.iml
+
+# Mac OS X
+.DS_Store

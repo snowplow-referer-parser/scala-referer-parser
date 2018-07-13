@@ -20,7 +20,6 @@ package com.snowplowanalytics.refererparser;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -71,7 +70,7 @@ public class Parser {
   }
 
   /**
-   * Construct our Parser object using a 
+   * Construct our Parser object using a
    * InputStream (in YAML format)
    *
    * @param referersYaml The referers YAML
@@ -115,12 +114,12 @@ public class Parser {
     if (refererUri == null) { return null; }
     return parse(refererUri.getScheme(), refererUri.getHost(), refererUri.getPath(), refererUri.getRawQuery(), pageHost, internalDomains);
   }
-  
+
   public Referer parse(URL refererUrl, String pageHost){
     if (refererUrl == null) { return null; }
     return parse(refererUrl.getProtocol(), refererUrl.getHost(), refererUrl.getPath(), refererUrl.getQuery(), pageHost);
   }
-  
+
   private Referer parse(String scheme, String host, String path, String query, String pageHost){
     return parse(scheme, host, path, query, pageHost, Collections.<String>emptyList());
   }
@@ -175,7 +174,7 @@ public class Parser {
    */
   private RefererLookup lookupReferer(String refererHost, String refererPath, Boolean includePath) {
 
-    // Check if domain+full path matches, e.g. for apollo.lv/portal/search/ 
+    // Check if domain+full path matches, e.g. for apollo.lv/portal/search/
     RefererLookup referer = (includePath) ? referers.get(refererHost + refererPath) : referers.get(refererHost);
 
     // Check if domain+one-level path matches, e.g. for orange.fr/webmail/fr_FR/read.html (in our YAML it's orange.fr/webmail)
@@ -253,17 +252,8 @@ public class Parser {
 
         // Validate
         List<String> parameters = refererMap.get("parameters");
-        if (medium == Medium.SEARCH) {
-          if (parameters == null) {
-            throw new CorruptYamlException("No parameters found for search referer '" + sourceName + "'");
-          }
-        } else {
-          if (parameters != null) {
-            throw new CorruptYamlException("Parameters not supported for non-search referer '" + sourceName + "'");
-          }
-        }
         List<String> domains = refererMap.get("domains");
-        if (domains == null) { 
+        if (domains == null) {
           throw new CorruptYamlException("No domains found for referer '" + sourceName + "'");
         }
 

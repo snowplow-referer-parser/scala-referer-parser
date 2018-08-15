@@ -1,5 +1,7 @@
 # referer-parser Java/Scala library
 
+[![Join the chat at https://gitter.im/snowplow-referer-parser-scala-referer-parser/Lobby](https://badges.gitter.im/snowplow-referer-parser-scala-referer-parser/Lobby.svg)](https://gitter.im/snowplow-referer-parser-scala-referer-parser/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 This is the Java and Scala implementation of [referer-parser][referer-parser], the library for extracting attribution data from referer _(sic)_ URLs.
 
 The implementation uses the shared 'database' of known referers found in [`referers.yml`][referers-yml].

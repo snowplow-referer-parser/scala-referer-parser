@@ -1,3 +1,10 @@
+Version 0.3.1 (2019-09-19)
+--------------------------
+Update scala to 2.11.1 and sbt to 0.13.18
+Update referers.yml to latest version from https://s3-eu-west-1.amazonaws.com/snowplow-hosted-assets/third-party/referer-parser/referers-latest.yml
+Read referrer config file (DB) from S3 containing latest list of referrers (https://s3-eu-west-1.amazonaws.com/snowplow-hosted-assets/third-party/referer-parser/referers-latest.yml) with fallback to referrers hardcoded in referer.yml
+Paid section added to referrer list
+
 Version 0.3.0 (2015-09-02)
 --------------------------
 Added Taboola, Outbrain and other referers (#109)

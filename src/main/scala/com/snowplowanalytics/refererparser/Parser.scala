@@ -93,7 +93,9 @@ class Parser private[refererparser] (referers: Map[String, RefererLookup]) {
     val path   = refererUri.getPath
     val query  = Option(refererUri.getRawQuery)
 
-    val validUri = (scheme == "http" || scheme == "https") && host != null && path != null
+    val validSchemes = Seq("http", "https", "android-app")
+
+    val validUri = validSchemes.contains(scheme) && host != null && path != null
 
     if (validUri) {
       if (// Check for internal domains

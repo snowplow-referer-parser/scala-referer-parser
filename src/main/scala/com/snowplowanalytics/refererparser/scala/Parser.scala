@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2013 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ object Medium extends Enumeration {
   val Internal = Value("internal")
   val Social   = Value("social")
   val Email    = Value("email")
+  val Paid     = Value("paid")
 
   /**
    * Converts from our Java Medium Enum

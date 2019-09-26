@@ -1,3 +1,7 @@
+Version 0.3.1 (2019-09-26)
+--------------------------
+Update referers.yml to latest version (#75)
+
 Version 0.3.0 (2015-09-02)
 --------------------------
 Added Taboola, Outbrain and other referers (#109)

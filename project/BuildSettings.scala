@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2013 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ object BuildSettings {
   // Basic settings for our app
   lazy val basicSettings = Seq[Setting[_]](
     organization  := "com.snowplowanalytics",
-    version       := "0.3.0",
+    version       := "0.3.1",
     description   := "Library for extracting marketing attribution data from referer URLs",
-    scalaVersion  := "2.9.1",
-    crossScalaVersions := Seq("2.9.1", "2.10.4", "2.11.1"),
+    scalaVersion  := "2.11.1",
+    crossScalaVersions := Seq("2.10.4", "2.11.1"),
     scalacOptions := Seq("-deprecation", "-encoding", "utf8"),
     resolvers     ++= Dependencies.resolutionRepos
   )

@@ -17,6 +17,9 @@
 import sbt._
 import Keys._
 
+import bintray.BintrayPlugin._
+import bintray.BintrayKeys._
+
 object BuildSettings {
 
   // Basic settings for our app
@@ -30,18 +33,26 @@ object BuildSettings {
     resolvers     ++= Dependencies.resolutionRepos
   )
 
-  // Publish settings
-  // TODO: update with ivy credentials etc when we start using Nexus
-  lazy val publishSettings = Seq[Setting[_]](
-    // Enables publishing to maven repo
+  lazy val publishSettings = bintraySettings ++ Seq(
     publishMavenStyle := true,
-
-    publishTo <<= version { version =>
-      val basePath = "target/repo/%s".format {
-        if (version.trim.endsWith("SNAPSHOT")) "snapshots/" else "releases/"
-      }
-      Some(Resolver.file("Local Maven repository", file(basePath)) transactional())
-    }
+	publishArtifact := true,
+	publishArtifact in Test := false,
+	licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html")),
+	bintrayOrganization := Some("snowplow"),
+	bintrayRepository := "snowplow-maven",
+	pomIncludeRepository := { _ => false },
+	homepage := Some(url("http://snowplowanalytics.com")),
+	scmInfo := Some(ScmInfo(url("https://github.com/snowplow-referer-parser/scala-referer-parser"),
+      "scm:git@github.com:snowplow-referer-parser/scala-referer-parser.git")),
+	pomExtra := (
+      <developers>
+        <developer>
+          <name>Snowplow Analytics Ltd</name>
+            <email>support@snowplowanalytics.com</email>
+            <organization>Snowplow Analytics Ltd</organization>
+            <organizationUrl>http://snowplowanalytics.com</organizationUrl>
+        </developer>
+      </developers>)
   )
 
   lazy val buildSettings = basicSettings ++ publishSettings

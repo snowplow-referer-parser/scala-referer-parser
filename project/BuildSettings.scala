@@ -25,7 +25,7 @@ object BuildSettings {
   // Basic settings for our app
   lazy val basicSettings = Seq[Setting[_]](
     organization  := "com.snowplowanalytics",
-    version       := "0.3.1",
+    version       := "0.3.1-M1",
     description   := "Library for extracting marketing attribution data from referer URLs",
     scalaVersion  := "2.11.1",
     crossScalaVersions := Seq("2.10.4", "2.11.1"),

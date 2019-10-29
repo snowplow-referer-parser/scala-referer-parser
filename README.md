@@ -10,6 +10,15 @@ The implementation uses a JSON version of the shared 'database' of known referer
 
 The Scala implementation is a core component of [Snowplow][snowplow], the open-source web-scale analytics platform.
 
+=======
+### Installation
+
+You can add the following to your SBT config:
+
+```scala
+val refererParser = "com.snowplowanalytics" %% "scala-referer-parser" % "0.6.0"
+```
+
 ### Usage
 
 All effects within the Scala implementation are wrapped in `Sync` from [cats-effect][cats-effect]. In these examples we use `IO`, but anything that implements `Sync` can be used.

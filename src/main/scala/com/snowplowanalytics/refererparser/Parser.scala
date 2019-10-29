@@ -169,7 +169,7 @@ class Parser private[refererparser] (referers: Map[String, RefererLookup]) {
       .map(s => s.substring(0, s.length - 1))
 
   /**
-   * Splits a full path into possible paths to try. Inlcludes full path, no path and first path level.
+   * Splits a full path into possible paths to try. Includes full path, no path and first path level.
    * For instance, pathsToTry("google.com/images/1/2/3") == List("/images/1/2/3", "/images", "")
    */
   private def pathsToTry(refererPath: String): List[String] = {

@@ -21,10 +21,10 @@ val refererParser = "com.snowplowanalytics" %% "scala-referer-parser" % "0.6.0"
 
 ### Usage
 
-All effects within the Scala implementation are wrapped in `Sync` from [cats-effect][cats-effect]. In these examples we use `IO`, but anything that implements `Sync` can be used.
+You can provide wrappers for effects, such as `Sync`, `Eval` or `Id` from [cats-effect][cats-effect]. In the examples below we use `IO`.
 
 ```scala
-import com.snowplowanalytics.refererparser.Parser
+import com.snowplowanalytics.refererparser._
 import cats.effect.IO
 import cats.data.EitherT
 import java.net.URI
@@ -36,14 +36,14 @@ val referersJsonPath = "/opt/referers/referers.json"
 
 // We use EitherT to handle exceptions. The IO routine will short circuit if an exception is returned.
 val io: EitherT[IO, Exception, Unit] = for {
-  // We can instantiate a new Parse instance with Parse.create
-  parser <- EitherT(Parser.create[IO](referersJsonPath))
+  // We can instantiate a new Parser instance with Parser.create
+  parser <- EitherT(CreateParser[IO].create(referersJsonPath))
 
   // Referer is a sealed hierarchy of different referer types
   referer1 <- EitherT.fromOption[IO](parser.parse(refererUrl, pageUrl),
     new Exception("No parseable referer"))
   _ <- EitherT.right(IO { println(referer1) })
-    // => SearchReferer(Google, Some(gateway oracle cards denise linn))
+    // => SearchReferer(SearchMedium,Google,Some(gateway oracle cards denise linn))
 
   // You can provide a list of domains which should be considered internal
   referer2 <- EitherT.fromOption[IO](parser.parse(
@@ -52,8 +52,7 @@ val io: EitherT[IO, Exception, Unit] = for {
       List("www.subdomain1.snowplowanalytics.com", "www.subdomain2.snowplowanalytics.com")
     ), new Exception("No parseable referer"))
   _ <- EitherT.right(IO { println(referer2) })
-    // => InternalReferer
-
+    // => InternalReferer(InternalMedium)
 
   // Various overloads are available for common cases, for instance
   maybeReferer1 = parser.parse("https://www.bing.com/search?q=snowplow")

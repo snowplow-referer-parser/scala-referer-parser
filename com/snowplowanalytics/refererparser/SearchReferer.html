@@ -122,21 +122,41 @@
                         <a class="class" href="CorruptJsonException.html" title=""></a>
                         <a href="CorruptJsonException.html" title="">CorruptJsonException</a>
                       </li><li class="current-entities indented3">
+                        <a class="object" href="CreateParser$.html" title=""></a>
+                        <a class="trait" href="CreateParser.html" title=""></a>
+                        <a href="CreateParser.html" title="">CreateParser</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="object" href="EmailMedium$.html" title=""></a>
+                        <a href="EmailMedium$.html" title="">EmailMedium</a>
+                      </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="class" href="EmailReferer.html" title=""></a>
                         <a href="EmailReferer.html" title="">EmailReferer</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="object" href="InternalReferer$.html" title=""></a>
-                        <a href="InternalReferer$.html" title="">InternalReferer</a>
+                        <a class="object" href="InternalMedium$.html" title=""></a>
+                        <a href="InternalMedium$.html" title="">InternalMedium</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="class" href="InternalReferer.html" title=""></a>
+                        <a href="InternalReferer.html" title="">InternalReferer</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="Medium$.html" title=""></a>
+                        <a class="class" href="Medium.html" title="Enumeration for supported mediums."></a>
+                        <a href="Medium.html" title="Enumeration for supported mediums.">Medium</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="object" href="PaidMedium$.html" title=""></a>
+                        <a href="PaidMedium$.html" title="">PaidMedium</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="class" href="PaidReferer.html" title=""></a>
                         <a href="PaidReferer.html" title="">PaidReferer</a>
                       </li><li class="current-entities indented3">
-                        <a class="object" href="Parser$.html" title="Parser object - contains one-time initialization of the JSON database of referers, and parse() methods to generate a Referer object from a referer URL."></a>
-                        <a class="class" href="Parser.html" title="Parser class - Scala version of Java Parser, with everything wrapped in Sync"></a>
-                        <a href="Parser.html" title="Parser class - Scala version of Java Parser, with everything wrapped in Sync">Parser</a>
+                        <span class="separator"></span>
+                        <a class="class" href="Parser.html" title=""></a>
+                        <a href="Parser.html" title="">Parser</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="trait" href="Referer.html" title="Referer - returned from parse, a sealed hierarchy which can be an UnknownReferer, SearchReferer, InternalReferer, SocialReferer, EmailReferer, or PaidReferer."></a>
@@ -147,16 +167,28 @@
                         <a href="RefererLookup.html" title="">RefererLookup</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
+                        <a class="object" href="SearchMedium$.html" title=""></a>
+                        <a href="SearchMedium$.html" title="">SearchMedium</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
                         <a class="class" href="" title=""></a>
                         <a href="" title="">SearchReferer</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="object" href="SocialMedium$.html" title=""></a>
+                        <a href="SocialMedium$.html" title="">SocialMedium</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="class" href="SocialReferer.html" title=""></a>
                         <a href="SocialReferer.html" title="">SocialReferer</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="object" href="UnknownReferer$.html" title=""></a>
-                        <a href="UnknownReferer$.html" title="">UnknownReferer</a>
+                        <a class="object" href="UnknownMedium$.html" title=""></a>
+                        <a href="UnknownMedium$.html" title="">UnknownMedium</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="class" href="UnknownReferer.html" title=""></a>
+                        <a href="UnknownReferer.html" title="">UnknownReferer</a>
                       </li>
               </ul>
             </div>
@@ -180,7 +212,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">SearchReferer</span><span class="params">(<span name="source">source: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="term">term: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="Referer.html" class="extype" name="com.snowplowanalytics.refererparser.Referer">Referer</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">SearchReferer</span><span class="params">(<span name="medium">medium: <a href="Medium.html" class="extype" name="com.snowplowanalytics.refererparser.Medium">Medium</a></span>, <span name="source">source: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="term">term: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="Referer.html" class="extype" name="com.snowplowanalytics.refererparser.Referer">Referer</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
@@ -236,9 +268,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="com.snowplowanalytics.refererparser.SearchReferer#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(source:String,term:Option[String]):com.snowplowanalytics.refererparser.SearchReferer"></a><a id="&lt;init&gt;:SearchReferer"></a>
+      <a id="&lt;init&gt;(medium:com.snowplowanalytics.refererparser.Medium,source:String,term:Option[String]):com.snowplowanalytics.refererparser.SearchReferer"></a><a id="&lt;init&gt;:SearchReferer"></a>
       <span class="permalink">
-      <a href="../../../com/snowplowanalytics/refererparser/SearchReferer.html#&lt;init&gt;(source:String,term:Option[String]):com.snowplowanalytics.refererparser.SearchReferer" title="Permalink">
+      <a href="../../../com/snowplowanalytics/refererparser/SearchReferer.html#&lt;init&gt;(medium:com.snowplowanalytics.refererparser.Medium,source:String,term:Option[String]):com.snowplowanalytics.refererparser.SearchReferer" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -247,7 +279,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">SearchReferer</span><span class="params">(<span name="source">source: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="term">term: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span>
+        <span class="name">SearchReferer</span><span class="params">(<span name="medium">medium: <a href="Medium.html" class="extype" name="com.snowplowanalytics.refererparser.Medium">Medium</a></span>, <span name="source">source: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="term">term: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span>
       </span>
       
       
@@ -422,6 +454,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="com.snowplowanalytics.refererparser.SearchReferer#medium" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="medium:com.snowplowanalytics.refererparser.Medium"></a><a id="medium:Medium"></a>
+      <span class="permalink">
+      <a href="../../../com/snowplowanalytics/refererparser/SearchReferer.html#medium:com.snowplowanalytics.refererparser.Medium" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">medium</span><span class="result">: <a href="Medium.html" class="extype" name="com.snowplowanalytics.refererparser.Medium">Medium</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="com.snowplowanalytics.refererparser.SearchReferer">SearchReferer</a> → <a href="Referer.html" class="extype" name="com.snowplowanalytics.refererparser.Referer">Referer</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">

@@ -16,7 +16,7 @@ The Scala implementation is a core component of [Snowplow][snowplow], the open-s
 You can add the following to your SBT config:
 
 ```scala
-val refererParser = "com.snowplowanalytics" %% "scala-referer-parser" % "0.6.0"
+val refererParser = "com.snowplowanalytics" %% "scala-referer-parser" % "1.0.0"
 ```
 
 ### Usage

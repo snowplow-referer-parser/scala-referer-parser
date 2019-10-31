@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2018 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,5 @@
  */
 package com.snowplowanalytics.refererparser
 
-/*
- * Hold the structure of a referer lookup
- */
+/* Hold the structure of a referer lookup */
 final case class RefererLookup(medium: Medium, source: String, parameters: List[String])

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Snowplow Analytics Ltd
+ * Copyright 2018-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.snowplowanalytics.refererparser
 
-// Java
 import java.net.URI
 
-// Scala
 import scala.io.Source._
 
-// circe
+import cats.Eval
+import cats.effect.IO
 import io.circe._
 import io.circe.parser._
 import io.circe.generic.semiauto._
-
-// Specs2
 import org.specs2.mutable.Specification
-
-// cats
-import cats.effect.IO
 
 case class TestCase(
   spec: String,
@@ -51,41 +44,42 @@ class JsonParseTest extends Specification {
   val eitherTests = for {
     doc <- parse(testString)
     lst <- doc.as[List[Json]]
-  } yield lst.map(_.as[TestCase] match {
-    case Right(success) => success
-    case Left(failure) => throw failure
-  })
+  } yield
+    lst.map(_.as[TestCase] match {
+      case Right(success) => success
+      case Left(failure)  => throw failure
+    })
 
   val tests = eitherTests match {
     case Right(success) => success
-    case Left(failure) => throw failure
+    case Left(failure)  => throw failure
   }
 
   val pageHost = "www.snowplowanalytics.com"
-  val internalDomains = List("www.subdomain1.snowplowanalytics.com", "www.subdomain2.snowplowanalytics.com")
+  val internalDomains =
+    List("www.subdomain1.snowplowanalytics.com", "www.subdomain2.snowplowanalytics.com")
 
-  val parser = Parser.create[IO](
-    getClass.getResource("/referers.json").getPath
-  ).unsafeRunSync() match {
-    case Right(p) => p
-    case Left(f) => throw f
-  }
+  val resource   = getClass.getResource("/referers.json").getPath
+  val ioParser   = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
+  val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
 
   "parse" should {
     s"extract the expected details from referer with spec" in {
       for (test <- tests) yield {
         val expected = Medium.fromString(test.medium) match {
-          case Some(UnknownMedium)  => Some(UnknownReferer)
-          case Some(SearchMedium)   => Some(SearchReferer(test.source.get, test.term))
-          case Some(InternalMedium) => Some(InternalReferer)
-          case Some(SocialMedium)   => Some(SocialReferer(test.source.get))
-          case Some(EmailMedium)    => Some(EmailReferer(test.source.get))
-          case Some(PaidMedium)     => Some(PaidReferer(test.source.get))
+          case Some(UnknownMedium)  => Some(UnknownReferer(UnknownMedium))
+          case Some(SearchMedium)   => Some(SearchReferer(SearchMedium, test.source.get, test.term))
+          case Some(InternalMedium) => Some(InternalReferer(InternalMedium))
+          case Some(SocialMedium)   => Some(SocialReferer(SocialMedium, test.source.get))
+          case Some(EmailMedium)    => Some(EmailReferer(EmailMedium, test.source.get))
+          case Some(PaidMedium)     => Some(PaidReferer(PaidMedium, test.source.get))
           case _                    => throw new Exception(s"Bad medium: ${test.medium}")
         }
-        val actual = parser.parse(new URI(test.uri), Some(pageHost), internalDomains)
+        val ioActual   = ioParser.parse(new URI(test.uri), Some(pageHost), internalDomains)
+        val evalActual = evalParser.parse(new URI(test.uri), Some(pageHost), internalDomains)
 
-        expected shouldEqual actual
+        expected shouldEqual ioActual
+        expected shouldEqual evalActual
       }
     }
   }

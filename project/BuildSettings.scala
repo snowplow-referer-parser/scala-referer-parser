@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2018 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,21 +32,10 @@ import scoverage.ScoverageKeys._
 
 object BuildSettings {
 
-  lazy val compilerOptions = Seq(
-    "-deprecation",
-    "-encoding", "UTF-8",
-    "-feature",
-    "-language:existentials",
-    "-language:higherKinds",
-    "-language:implicitConversions",
-    "-unchecked",
-    "-Yno-adapted-args",
-    "-Ywarn-dead-code",
-    "-Ywarn-numeric-widen",
-    "-Xfuture",
-    "-Xlint",
-    "-Ypartial-unification"
-  )
+  lazy val javaCompilerOptions = Seq(
+    "-source", "1.8",
+    "-target", "1.8"
+)
 
   lazy val publishSettings = bintraySettings ++ Seq(
     publishMavenStyle := true,

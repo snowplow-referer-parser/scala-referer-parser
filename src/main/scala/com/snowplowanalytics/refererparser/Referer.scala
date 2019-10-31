@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2018 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,12 @@ package com.snowplowanalytics.refererparser
  *  UnknownReferer, SearchReferer, InternalReferer, SocialReferer, EmailReferer,
  *  or PaidReferer.
  */
-sealed trait Referer
-case object UnknownReferer                                           extends Referer
-final case class SearchReferer(source: String, term: Option[String]) extends Referer
-case object InternalReferer                                          extends Referer
-final case class SocialReferer(source: String)                       extends Referer
-final case class EmailReferer(source: String)                        extends Referer
-final case class PaidReferer(source: String)                         extends Referer
+sealed trait Referer {
+  def medium: Medium
+}
+final case class UnknownReferer(medium: Medium)                                      extends Referer
+final case class SearchReferer(medium: Medium, source: String, term: Option[String]) extends Referer
+final case class InternalReferer(medium: Medium)                                     extends Referer
+final case class SocialReferer(medium: Medium, source: String)                       extends Referer
+final case class EmailReferer(medium: Medium, source: String)                        extends Referer
+final case class PaidReferer(medium: Medium, source: String)                         extends Referer

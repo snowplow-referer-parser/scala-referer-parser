@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2018 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ import sbt._
 
 object Dependencies {
   object V {
-    val catsCore   = "1.5.0"
-    val catsEffect = "1.1.0"
-    val circe      = "0.11.0"
-    val specs2     = "4.3.6"
+    val catsCore   = "1.6.0"
+    val catsEffect = "1.2.0"
+    val circe      = "0.11.1"
+    val specs2     = "4.4.1"
   }
 
   object Libraries {
@@ -29,7 +29,7 @@ object Dependencies {
     val circeCore        = "io.circe"      %% "circe-core"        % V.circe
     val circeGeneric     = "io.circe"      %% "circe-generic"     % V.circe
     val circeParser      = "io.circe"      %% "circe-parser"      % V.circe
-    val specs2Core       = "org.specs2"    %% "specs2-core"       % V.specs2 % "test"
-    val specs2Scalacheck = "org.specs2"    %% "specs2-scalacheck" % V.specs2 % "test"
+    val specs2Core       = "org.specs2"    %% "specs2-core"       % V.specs2 % Test
+    val specs2Scalacheck = "org.specs2"    %% "specs2-scalacheck" % V.specs2 % Test
   }
 }

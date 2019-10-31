@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2018 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,12 @@
  */
 package com.snowplowanalytics.refererparser
 
-// Json
+import cats.implicits._
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.parser._
 
-// Cats
-import cats.implicits._
-
-/**
- * Handles loading and storing referers
- */
+/** Handles loading and storing referers */
 private[refererparser] object ParseReferers {
   final case class RefererEntry(
     medium: Medium,

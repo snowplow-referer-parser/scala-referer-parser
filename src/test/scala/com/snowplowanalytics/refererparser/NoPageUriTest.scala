@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2018 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,43 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.snowplowanalytics.refererparser
 
-// Specs2
-import org.specs2.mutable.Specification
-
-// Cats
+import cats.Eval
 import cats.effect.IO
+import org.specs2.mutable.Specification
 
 class NoPageUriTest extends Specification {
 
-  // Our data
-  val refererUri = "http://www.google.com/search?q=gateway+oracle+cards+denise+linn&hl=en&client=safari"
-  val expected   = Some(SearchReferer("Google", Some("gateway oracle cards denise linn")))
+  val refererUri =
+    "http://www.google.com/search?q=gateway+oracle+cards+denise+linn&hl=en&client=safari"
+  val expected = Some(
+    SearchReferer(SearchMedium, "Google", Some("gateway oracle cards denise linn")))
 
-  val parser = Parser.create[IO](
-    getClass.getResource("/referers.json").getPath
-  ).unsafeRunSync() match {
-    case Right(p) => p
-    case Left(f) => throw f
-  }
+  val resource   = getClass.getResource("/referers.json").getPath
+  val ioParser   = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
+  val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
 
   "An empty page URI" should {
     "not interfere with the referer parsing" in {
-      parser.parse(refererUri, "") must_== expected
+      ioParser.parse(refererUri, "") must_== expected
+      evalParser.parse(refererUri, "") must_== expected
     }
   }
 
   "No page URI" should {
     "not interfere with the referer parsing" in {
-      parser.parse(refererUri) must_== expected
+      ioParser.parse(refererUri) must_== expected
+      evalParser.parse(refererUri) must_== expected
     }
   }
 
   "A page URI" should {
     "not interfere with the referer parsing" in {
-      parser.parse(refererUri) must_== expected
+      ioParser.parse(refererUri) must_== expected
+      evalParser.parse(refererUri) must_== expected
     }
   }
 }

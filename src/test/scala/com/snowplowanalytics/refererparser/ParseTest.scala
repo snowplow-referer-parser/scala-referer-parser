@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2018 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,21 @@
 
 package com.snowplowanalytics.refererparser
 
-// Specs2
+import cats.Eval
+import cats.effect.IO
 import org.specs2.Specification
 import org.specs2.matcher.DataTables
 
-// Cats
-import cats.effect.IO
-
 class ParseTest extends Specification with DataTables { def is =
+  s2"""This is a specification to test the parse function
+    usual               $e1
+    unknown referer uri $e2
+    false positives     $e3
+    no double decoding  $e4"""
 
-  "This is a specification to test the parse function"
-
-  val parser = Parser.create[IO](
-    getClass.getResource("/referers.json").getPath
-  ).unsafeRunSync() match {
-    case Right(p) => p
-    case Left(f) => throw f
-  }
+  val resource = getClass.getResource("/referers.json").getPath
+  val ioParser = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
+  val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
 
   // Aliases
   val pageHost = "www.snowplowanalytics.com"
@@ -50,7 +48,7 @@ class ParseTest extends Specification with DataTables { def is =
     "Yahoo! search"        !! "http://es.search.yahoo.com/search;_ylt=A7x9QbwbZXxQ9EMAPCKT.Qt.?p=BIEDERMEIER+FORTUNE+TELLING+CARDS&ei=utf-8&type=685749&fr=chr-greentree_gc&xargs=0&pstart=1&b=11" ! Medium.Search ! Some("Yahoo!") ! Some("BIEDERMEIER FORTUNE TELLING CARDS") |
     "Yahoo! Images search" !! "http://it.images.search.yahoo.com/images/view;_ylt=A0PDodgQmGBQpn4AWQgdDQx.;_ylu=X3oDMTBlMTQ4cGxyBHNlYwNzcgRzbGsDaW1n?back=http%3A%2F%2Fit.images.search.yahoo.com%2Fsearch%2Fimages%3Fp%3DEarth%2BMagic%2BOracle%2BCards%26fr%3Dmcafee%26fr2%3Dpiv-web%26tab%3Dorganic%26ri%3D5&w=1064&h=1551&imgurl=mdm.pbzstatic.com%2Foracles%2Fearth-magic-oracle-cards%2Fcard-1.png&rurl=http%3A%2F%2Fwww.psychicbazaar.com%2Foracles%2F143-earth-magic-oracle-cards.html&size=2.8+KB&name=Earth+Magic+Oracle+Cards+-+Psychic+Bazaar&p=Earth+Magic+Oracle+Cards&oid=f0a5ad5c4211efe1c07515f56cf5a78e&fr2=piv-web&fr=mcafee&tt=Earth%2BMagic%2BOracle%2BCards%2B-%2BPsychic%2BBazaar&b=0&ni=90&no=5&ts=&tab=organic&sigr=126n355ib&sigb=13hbudmkc&sigi=11ta8f0gd&.crumb=IZBOU1c0UHU" ! Medium.Search ! Some("Yahoo! Images") ! Some("Earth Magic Oracle Cards") |
     "PriceRunner search"   !! "http://www.pricerunner.co.uk/search?displayNoHitsMessage=1&q=wild+wisdom+of+the+faery+oracle"    ! Medium.Search    ! Some("PriceRunner") ! Some("wild wisdom of the faery oracle")  |
-    "Bing Search"          !! "https://www4.bing.com/search?q=AAA&qs=n&form=QBLH&sp=-1&pq=aaa&sc=8-3&sk=&cvid=D009ED86675A4D4184DCFC3BCF5849A5"    ! Medium.Search ! Some("Bing")        ! Some("AAA") |
+    "Bing Search"          !! "https://www.bing.com/search?q=AAA&qs=n&form=QBLH&sp=-1&pq=aaa&sc=8-3&sk=&cvid=D009ED86675A4D4184DCFC3BCF5849A5"     ! Medium.Search ! Some("Bing")        ! Some("AAA") |
     "Bing Images search"   !! "http://www.bing.com/images/search?q=psychic+oracle+cards&view=detail&id=D268EDDEA8D3BF20AF887E62AF41E8518FE96F08"   ! Medium.Search ! Some("Bing Images") ! Some("psychic oracle cards") |
     "IXquick search"       !! "https://s3-us3.ixquick.com/do/search"                                                            ! Medium.Search    ! Some("IXquick")     ! None                                     |
     "AOL search"           !! "http://aolsearch.aol.co.uk/aol/search?s_chn=hp&enabled_terms=&s_it=aoluk-homePage50&q=pendulums" ! Medium.Search    ! Some("AOL")         ! Some("pendulums")                        |
@@ -69,7 +67,8 @@ class ParseTest extends Specification with DataTables { def is =
     "Internal HTTP"        !! "http://www.snowplowanalytics.com/about/team"                                                     ! Medium.Internal  ! None                ! None                                     |
     "Internal HTTPS"       !! "https://www.snowplowanalytics.com/account/profile"                                               ! Medium.Internal  ! None                ! None                                     |> {
       (_, refererUri, medium, source, term) =>
-        parser.parse(refererUri, pageHost) must_== Some(genExpected(medium, source, term))
+        ioParser.parse(refererUri, pageHost) must_== Some(genExpected(medium, source, term))
+        evalParser.parse(refererUri, pageHost) must_== Some(genExpected(medium, source, term))
     }
 
   // Unknown referer URI
@@ -80,8 +79,15 @@ class ParseTest extends Specification with DataTables { def is =
     "Unknown referer #3"            !! "http://www.spyfu.com/domain.aspx?d=3897225171967988459"  ! None             |
     "Unknown referer #4"            !! "http://seaqueen.wordpress.com/"                          ! None             |
     "Non-search Yahoo! site"        !! "http://finance.yahoo.com"                                ! Some("Yahoo!")   |> {
-      (_, refererUri, refererSource) =>
-        parser.parse(refererUri, pageHost) must_== Some(UnknownReferer)
+      (_, refererUri, refererSrc) =>
+        refererSrc match {
+          case Some(src) if src == "Yahoo!" =>
+            ioParser.parse(refererUri, pageHost) must_== Some(SearchReferer(SearchMedium, src, None))
+            evalParser.parse(refererUri, pageHost) must_== Some(SearchReferer(SearchMedium, src, None))
+          case _ =>
+            ioParser.parse(refererUri, pageHost) must_== Some(UnknownReferer(UnknownMedium))
+            evalParser.parse(refererUri, pageHost) must_== Some(UnknownReferer(UnknownMedium))
+        }
     }
 
   // Unavoidable false positives
@@ -94,15 +100,24 @@ class ParseTest extends Specification with DataTables { def is =
     "Non-search Google Drive link" !! "http://www.google.com/url?q=http://www.whatismyreferer.com/&sa=D&usg=ALhdy2_qs3arPmg7E_e2aBkj6K0gHLa5rQ" ! Medium.Search ! Some("Google") ! Some("http://www.whatismyreferer.com/") |> {
      // ^ Sadly indistinguishable from a search link
       (_, refererUri, medium, source, term) =>
-        parser.parse(refererUri, pageHost) must_== Some(genExpected(medium, source, term))
+        ioParser.parse(refererUri, pageHost) must_== Some(genExpected(medium, source, term))
+        evalParser.parse(refererUri, pageHost) must_== Some(genExpected(medium, source, term))
+    }
+
+  def e4 =
+    "SPEC NAME" || "REFERER URI"           	                      | "REFERER MEDIUM" | "REFERER SOURCE" | "REFERER TERM"     |
+    "% encoded" !! "https://www.google.com/search?q=keyword+1%25" ! Medium.Search    ! Some("Google")   ! Some("keyword 1%") |> {
+      (_, refererUri, medium, source, term) =>
+        ioParser.parse(refererUri, pageHost) must_== Some(genExpected(medium, source, term))
+        evalParser.parse(refererUri, pageHost) must_== Some(genExpected(medium, source, term))
     }
 
   def genExpected(medium: Medium, source: Option[String], term: Option[String]) = medium match {
-    case UnknownMedium  => UnknownReferer
-    case SearchMedium   => SearchReferer(source.get, term)
-    case InternalMedium => InternalReferer
-    case SocialMedium   => SocialReferer(source.get)
-    case EmailMedium    => EmailReferer(source.get)
-    case PaidMedium     => PaidReferer(source.get)
+    case UnknownMedium  => UnknownReferer(UnknownMedium)
+    case SearchMedium   => SearchReferer(SearchMedium, source.get, term)
+    case InternalMedium => InternalReferer(InternalMedium)
+    case SocialMedium   => SocialReferer(SocialMedium, source.get)
+    case EmailMedium    => EmailReferer(EmailMedium, source.get)
+    case PaidMedium     => PaidReferer(PaidMedium, source.get)
   }
 }

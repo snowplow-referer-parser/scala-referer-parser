@@ -1,7 +1,7 @@
 # referer-parser Scala library
 
 [![Build Status](https://travis-ci.org/snowplow-referer-parser/scala-referer-parser.svg?branch=develop)](https://travis-ci.org/snowplow-referer-parser/scala-referer-parser)
-[![Join the chat at https://gitter.im/snowplow-referer-parser/referer-parser](https://badges.gitter.im/snowplow-referer-parser/referer-parser.svg)](https://gitter.im/snowplow-referer-parser/referer-parser?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Gitter](https://badges.gitter.im/snowplow-referer-parser/scala-referer-parser.svg)](https://gitter.im/snowplow-referer-parser/scala-referer-parser?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge)
 [![codecov](https://codecov.io/gh/snowplow-referer-parser/scala-referer-parser/branch/develop/graph/badge.svg)](https://codecov.io/gh/snowplow-referer-parser/scala-referer-parser)
 
 This is the Scala implementation of [referer-parser][referer-parser], the library for extracting attribution data from referer _(sic)_ URLs.
@@ -10,12 +10,20 @@ The implementation uses a JSON version of the shared 'database' of known referer
 
 The Scala implementation is a core component of [Snowplow][snowplow], the open-source web-scale analytics platform.
 
-### Usage
+### Installation
 
-All effects within the Scala implementation are wrapped in `Sync` from [cats-effect][cats-effect]. In these examples we use `IO`, but anything that implements `Sync` can be used.
+You can add the following to your SBT config:
 
 ```scala
-import com.snowplowanalytics.refererparser.Parser
+val refererParser = "com.snowplowanalytics" %% "scala-referer-parser" % "1.0.0"
+```
+
+### Usage
+
+You can provide wrappers for effects, such as `Sync`, `Eval` or `Id` from [cats-effect][cats-effect]. In the examples below we use `IO`.
+
+```scala
+import com.snowplowanalytics.refererparser._
 import cats.effect.IO
 import cats.data.EitherT
 import java.net.URI
@@ -27,14 +35,14 @@ val referersJsonPath = "/opt/referers/referers.json"
 
 // We use EitherT to handle exceptions. The IO routine will short circuit if an exception is returned.
 val io: EitherT[IO, Exception, Unit] = for {
-  // We can instantiate a new Parse instance with Parse.create
-  parser <- EitherT(Parser.create[IO](referersJsonPath))
+  // We can instantiate a new Parser instance with Parser.create
+  parser <- EitherT(CreateParser[IO].create(referersJsonPath))
 
   // Referer is a sealed hierarchy of different referer types
   referer1 <- EitherT.fromOption[IO](parser.parse(refererUrl, pageUrl),
     new Exception("No parseable referer"))
   _ <- EitherT.right(IO { println(referer1) })
-    // => SearchReferer(Google, Some(gateway oracle cards denise linn))
+    // => SearchReferer(SearchMedium,Google,Some(gateway oracle cards denise linn))
 
   // You can provide a list of domains which should be considered internal
   referer2 <- EitherT.fromOption[IO](parser.parse(
@@ -43,8 +51,7 @@ val io: EitherT[IO, Exception, Unit] = for {
       List("www.subdomain1.snowplowanalytics.com", "www.subdomain2.snowplowanalytics.com")
     ), new Exception("No parseable referer"))
   _ <- EitherT.right(IO { println(referer2) })
-    // => InternalReferer
-
+    // => InternalReferer(InternalMedium)
 
   // Various overloads are available for common cases, for instance
   maybeReferer1 = parser.parse("https://www.bing.com/search?q=snowplow")
@@ -60,25 +67,13 @@ More examples can be seen in [ParseTest.scala][parsetest-scala]. See [Parser.sca
 [parsetest-scala]: src/test/scala/com/snowplowanalytics/refererparser/ParseTest.scala
 [parser-scala]: src/main/scala/com/snowplowanalytics/refererparser/Parser.scala
 
-### Installation
-
-Add this to your SBT config:
-
-```scala
-val refererParser = "com.snowplowanalytics" %% "referer-parser" % "0.5.0"
-```
-
 ## Contributing
 
-1. Fork it
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+Check out [our contributing guide](CONTRIBUTING.md).
 
 ## Copyright and license
 
-The referer-parser Java/Scala library is copyright 2012-2018 Snowplow Analytics Ltd.
+The referer-parser Java/Scala library is copyright 2012-2019 Snowplow Analytics Ltd.
 
 Licensed under the [Apache License, Version 2.0][license] (the "License");
 you may not use this software except in compliance with the License.

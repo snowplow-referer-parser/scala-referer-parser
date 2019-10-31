@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2018 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.snowplowanalytics.refererparser
 
-// Specs2
-import org.specs2.mutable.Specification
-
-// Cats
+import cats.Eval
 import cats.effect.IO
+import org.specs2.mutable.Specification
 
 class CorruptedRefererUriTest extends Specification {
 
-  // Our data
-  val refererUri = "http://bigcommerce%20wordpress%20plugin/"
-
-  val parser = Parser.create[IO](
-    getClass.getResource("/referers.json").getPath
-  ).unsafeRunSync() match {
-    case Right(p) => p
-    case Left(f) => throw f
-  }
+  val resource   = getClass.getResource("/referers.json").getPath
+  val ioParser   = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
+  val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
 
   "A corrupted referer URI" should {
     "return None, not throw an Exception" in {
-      parser.parse(refererUri) must beNone
+      val refererUri = "http://bigcommerce%20wordpress%20plugin/"
+      ioParser.parse(refererUri) must beNone
+      evalParser.parse(refererUri) must beNone
     }
   }
 }

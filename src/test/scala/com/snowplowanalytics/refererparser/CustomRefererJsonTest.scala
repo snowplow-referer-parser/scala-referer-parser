@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2018 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.snowplowanalytics.refererparser
 
-// Specs2
-import org.specs2.mutable.Specification
-
-// Cats
+import cats.Eval
 import cats.effect.IO
+import org.specs2.mutable.Specification
 
 class CustomRefererJsonTest extends Specification {
 
+  val resource   = getClass.getResource("/custom-referers.json").getPath
+  val ioParser   = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
+  val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
+
   "Custom referer list" should {
     "give correct referer" in {
-      val customReferersPath = getClass.getResource("/custom-referers.json").getPath
-
-      val parser = Parser.create[IO](customReferersPath).unsafeRunSync() match {
-        case Right(parser) => parser
-        case Left(failure) => throw failure
-      }
-      val expected = Some(SearchReferer("Example", Some("hello world")))
-      val actual = parser.parse("https://www.example.org/?query=hello+world")
-
-      expected shouldEqual actual
+      val refererUri = "https://www.example.org/?query=hello+world"
+      val expected   = Some(SearchReferer(SearchMedium, "Example", Some("hello world")))
+      expected shouldEqual ioParser.parse(refererUri)
+      expected shouldEqual evalParser.parse(refererUri)
     }
   }
 }

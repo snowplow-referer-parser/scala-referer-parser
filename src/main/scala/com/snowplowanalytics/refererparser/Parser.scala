@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2018 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,47 @@
  */
 package com.snowplowanalytics.refererparser
 
-// Java
 import java.net.{URI, URLDecoder}
 
-// Scala
 import scala.io.Source
 
-// Cats
+import cats.{Eval, Id}
 import cats.effect.Sync
-import cats.syntax.all._
+import cats.syntax.either._
+import cats.syntax.functor._
 
-/**
- * Parser object - contains one-time initialization
- * of the JSON database of referers, and parse()
- * methods to generate a Referer object from a
- * referer URL.
- */
-object Parser {
-  def create[F[_]: Sync](filePath: String): F[Either[Exception, Parser]] =
-    Sync[F]
-      .delay { Source.fromFile(filePath).mkString }
-      .map(rawJson =>
-        ParseReferers.loadJsonFromString(rawJson).map(referers => new Parser(referers)))
+trait CreateParser[F[_]] {
+  def create(filePath: String): F[Either[Exception, Parser]]
 }
 
-/**
- * Parser class - Scala version of Java Parser, with
- * everything wrapped in Sync
- */
-class Parser private (referers: Map[String, RefererLookup]) {
+object CreateParser {
+  def apply[F[_]](implicit ev: CreateParser[F]): CreateParser[F] = ev
+
+  implicit def syncCreateParser[F[_]: Sync]: CreateParser[F] = new CreateParser[F] {
+    def create(filePath: String): F[Either[Exception, Parser]] =
+      Sync[F]
+        .delay { Source.fromFile(filePath).mkString }
+        .map(rawJson =>
+          ParseReferers.loadJsonFromString(rawJson).map(referers => new Parser(referers)))
+  }
+
+  implicit def evalCreateParser: CreateParser[Eval] = new CreateParser[Eval] {
+    def create(filePath: String): Eval[Either[Exception, Parser]] =
+      Eval
+        .later { Source.fromFile(filePath).mkString }
+        .map(rawJson =>
+          ParseReferers.loadJsonFromString(rawJson).map(referers => new Parser(referers)))
+  }
+
+  implicit def idCreateParser: CreateParser[Id] = new CreateParser[Id] {
+    def create(filePath: String): Id[Either[Exception, Parser]] = {
+      val rawJson = Source.fromFile(filePath).mkString
+      ParseReferers.loadJsonFromString(rawJson).map(referers => new Parser(referers))
+    }
+  }
+}
+
+class Parser private[refererparser] (referers: Map[String, RefererLookup]) {
 
   private def toUri(uri: String): Option[URI] = {
     if (uri == "")
@@ -70,10 +82,7 @@ class Parser private (referers: Map[String, RefererLookup]) {
   def parse(refererUri: String, pageUri: URI): Option[Referer] =
     toUri(refererUri).flatMap(uri => parse(uri, Some(pageUri.getHost), Nil))
 
-  /**
-   * Parses a `refererUri` URI to return
-   * either Some Referer, or None.
-   */
+  /** Parses a `refererUri` URI to return either Some Referer, or None. */
   def parse(
     refererUri: URI,
     pageHost: Option[String],
@@ -82,32 +91,36 @@ class Parser private (referers: Map[String, RefererLookup]) {
     val scheme = refererUri.getScheme
     val host   = refererUri.getHost
     val path   = refererUri.getPath
-    val query  = Option(refererUri.getQuery)
+    val query  = Option(refererUri.getRawQuery)
 
-    val validUri = (scheme == "http" || scheme == "https") && host != null && path != null
+    val validSchemes = Seq("http", "https", "android-app")
+
+    val validUri = validSchemes.contains(scheme) && host != null && path != null
 
     if (validUri) {
       if (// Check for internal domains
         pageHost.exists(_.equals(host)) ||
         internalDomains.map(_.trim()).contains(host)) {
-        Some(InternalReferer)
+        Some(InternalReferer(InternalMedium))
       } else {
         Some(
           lookupReferer(host, path)
             .map(lookup => {
               lookup.medium match {
-                case UnknownMedium => UnknownReferer
+                case UnknownMedium => UnknownReferer(UnknownMedium)
                 case SearchMedium =>
                   SearchReferer(
+                    SearchMedium,
                     lookup.source,
-                    query.flatMap(q => extractSearchTerm(q, lookup.parameters)))
-                case InternalMedium => InternalReferer
-                case SocialMedium   => SocialReferer(lookup.source)
-                case EmailMedium    => EmailReferer(lookup.source)
-                case PaidMedium     => PaidReferer(lookup.source)
+                    query.flatMap(q => extractSearchTerm(q, lookup.parameters))
+                  )
+                case InternalMedium => InternalReferer(InternalMedium)
+                case SocialMedium   => SocialReferer(SocialMedium, lookup.source)
+                case EmailMedium    => EmailReferer(EmailMedium, lookup.source)
+                case PaidMedium     => PaidReferer(PaidMedium, lookup.source)
               }
             })
-            .getOrElse(UnknownReferer))
+            .getOrElse(UnknownReferer(UnknownMedium)))
       }
     } else {
       None
@@ -131,9 +144,6 @@ class Parser private (referers: Map[String, RefererLookup]) {
 
   private def decodeUriPart(part: String): String = URLDecoder.decode(part, "UTF-8")
 
-  /**
-   * Determine
-   */
   private def lookupReferer(refererHost: String, refererPath: String): Option[RefererLookup] = {
     val hosts = hostsToTry(refererHost)
     val paths = pathsToTry(refererPath)
@@ -152,17 +162,16 @@ class Parser private (referers: Map[String, RefererLookup]) {
    * Splits a full hostname into possible hosts to lookup.
    * For instance, hostsToTry("www.google.com") == List("www.google.com", "google.com", "com")
    */
-  private def hostsToTry(refererHost: String): List[String] = {
+  private def hostsToTry(refererHost: String): List[String] =
     refererHost
       .split("\\.")
       .toList
       .scanRight("")((part, full) => s"$part.$full")
       .init
       .map(s => s.substring(0, s.length - 1))
-  }
 
   /**
-   * Splits a full path into possible paths to try. Inlcludes full path, no path and first path level.
+   * Splits a full path into possible paths to try. Includes full path, no path and first path level.
    * For instance, pathsToTry("google.com/images/1/2/3") == List("/images/1/2/3", "/images", "")
    */
   private def pathsToTry(refererPath: String): List[String] = {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2018 Snowplow Analytics Ltd
+ * Copyright 2012-2019 Snowplow Analytics Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.snowplowanalytics.refererparser
 
-// Specs2 & ScalaCheck
-import org.specs2.{Specification, ScalaCheck}
+import cats.Eval
+import cats.effect.IO
+import org.specs2.{ScalaCheck, Specification}
 import org.scalacheck.Arbitrary._
 
-// Cats
-import cats.effect.IO
-
 class ParseFuzzTest extends Specification with ScalaCheck {
-
-  val parser = Parser.create[IO](
-    getClass.getResource("/referers.json").getPath
-  ).unsafeRunSync() match {
-    case Right(p) => p
-    case Left(f) => throw f
-  }
+  val resource   = getClass.getResource("/referers.json").getPath
+  val ioParser   = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
+  val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
 
   def is =
     "The parse function should work for any pair of referer and page Strings" ! e1
 
   def e1 =
     prop { (refererUri: String, pageUri: String) =>
-      parser.parse(refererUri, pageUri) must beAnInstanceOf[Option[Referer]]
+      ioParser.parse(refererUri, pageUri) must beAnInstanceOf[Option[Referer]]
+      evalParser.parse(refererUri, pageUri) must beAnInstanceOf[Option[Referer]]
     }
 }

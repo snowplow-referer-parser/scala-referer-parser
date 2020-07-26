@@ -38,7 +38,7 @@ case class TestCase(
 class JsonParseTest extends Specification {
   implicit val testCaseDecoder: Decoder[TestCase] = deriveDecoder[TestCase]
 
-  val testString = fromFile("src/test/resources/referer-tests.json").getLines.mkString
+  val testString = fromFile("src/test/resources/referer-tests.json").getLines().mkString
 
   // Convert the JSON to a List of TestCase
   val eitherTests = for {

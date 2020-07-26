@@ -17,6 +17,7 @@ package com.snowplowanalytics.refererparser
 
 import java.net.{URI, URLDecoder}
 
+import scala.collection.compat.immutable.LazyList
 import scala.io.Source
 
 import cats.{Eval, Id}
@@ -148,10 +149,10 @@ class Parser private[refererparser] (referers: Map[String, RefererLookup]) {
     val hosts = hostsToTry(refererHost)
     val paths = pathsToTry(refererPath)
 
-    val results: Stream[RefererLookup] = for {
-      path   <- paths.toStream
-      host   <- hosts.toStream
-      result <- referers.get(host + path).toStream
+    val results: LazyList[RefererLookup] = for {
+      path   <- paths.to(LazyList)
+      host   <- hosts.to(LazyList)
+      result <- referers.get(host + path).to(LazyList)
     } yield result
 
     // Since streams are lazy we don't calculate past the first element

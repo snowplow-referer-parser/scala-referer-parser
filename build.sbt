@@ -18,7 +18,7 @@ val root = (project in file("."))
   .settings(
     name := "scala-referer-parser",
     organization := "com.snowplowanalytics",
-    version := "1.0.0",
+    version := "1.0.1",
     description := "Library for extracting marketing attribution data from referer URLs",
     scalaVersion := "2.13.3",
     crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.3"),

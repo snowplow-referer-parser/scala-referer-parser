@@ -1,3 +1,9 @@
+Version 1.0.1 (2020-08-27)
+--------------------------
+Reformat with scalafmt (close #102)
+Rewrite DataTable test due to scalafmt error (close #100)
+Bump to scala 2.13.3 (closes #98)
+
 Version 1.0.0 (2019-10-31)
 --------------------------
 Provide a way to create a Parser using cats.Eval (#67)

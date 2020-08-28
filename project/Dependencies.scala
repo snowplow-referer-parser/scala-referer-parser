@@ -17,11 +17,10 @@ import sbt._
 
 object Dependencies {
   object V {
-    val catsCore         = "2.0.0"
-    val catsEffect       = "2.0.0"
-    val circe            = "0.12.0"
-    val collectionCompat = "2.1.6"
-    val specs2           = "4.10.0"
+    val catsCore   = "2.0.0"
+    val catsEffect = "2.0.0"
+    val circe      = "0.12.0"
+    val specs2     = "4.10.0"
   }
 
   object Libraries {
@@ -30,8 +29,6 @@ object Dependencies {
     val circeCore    = "io.circe"      %% "circe-core"    % V.circe
     val circeGeneric = "io.circe"      %% "circe-generic" % V.circe
     val circeParser  = "io.circe"      %% "circe-parser"  % V.circe
-    val collectionCompat =
-      "org.scala-lang.modules" %% "scala-collection-compat" % V.collectionCompat
 
     val specs2Core       = "org.specs2" %% "specs2-core"       % V.specs2 % Test
     val specs2Scalacheck = "org.specs2" %% "specs2-scalacheck" % V.specs2 % Test

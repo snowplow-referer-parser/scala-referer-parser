@@ -17,7 +17,6 @@ package com.snowplowanalytics.refererparser
 
 import java.net.{URI, URLDecoder}
 
-import scala.collection.compat.immutable.LazyList
 import scala.io.Source
 
 import cats.{Eval, Id}

@@ -20,7 +20,7 @@ object Dependencies {
     val catsCore   = "2.1.1"
     val catsEffect = "2.1.4"
     val circe      = "0.13.0"
-    val specs2     = "4.10.0"
+    val specs2     = "4.10.3"
   }
 
   object Libraries {

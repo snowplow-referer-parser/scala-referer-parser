@@ -1,3 +1,15 @@
+Version 1.1.0 (2020-09-03)
+--------------------------
+Update specs2 to 4.10.3 (#111)
+Update cats-effect to 2.1.4 (#110)
+Update cats-core to 2.1.1 (#109)
+Update Circe to 0.13.0 (#108)
+Update sbt version to 1.3.13 (#107)
+Drop support for Scala 2.11 (#106)
+Reformat with scalafmt (#102)
+Rewrite DataTable test due to scalafmt error (#100)
+Bump to scala 2.13.3 (#98)
+
 Version 1.0.0 (2019-10-31)
 --------------------------
 Provide a way to create a Parser using cats.Eval (#67)

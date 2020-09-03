@@ -29,6 +29,7 @@ val root = (project in file("."))
       Dependencies.Libraries.circeCore,
       Dependencies.Libraries.circeGeneric,
       Dependencies.Libraries.circeParser,
+      Dependencies.Libraries.collectionCompat,
       Dependencies.Libraries.specs2Core,
       Dependencies.Libraries.specs2Scalacheck
     )

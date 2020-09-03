@@ -23,6 +23,7 @@ import cats.{Eval, Id}
 import cats.effect.Sync
 import cats.syntax.either._
 import cats.syntax.functor._
+import scala.collection.compat.immutable.LazyList
 
 trait CreateParser[F[_]] {
   def create(filePath: String): F[Either[Exception, Parser]]

@@ -20,8 +20,8 @@ val root = (project in file("."))
     organization := "com.snowplowanalytics",
     version := "1.1.0",
     description := "Library for extracting marketing attribution data from referer URLs",
-    scalaVersion := "2.13.3",
-    crossScalaVersions := Seq("2.12.8", "2.13.3"),
+    scalaVersion := "2.13.8",
+    crossScalaVersions := Seq("2.12.15", "2.13.8"),
     javacOptions := BuildSettings.javaCompilerOptions,
     libraryDependencies ++= Seq(
       Dependencies.Libraries.catsCore,

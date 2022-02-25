@@ -17,8 +17,9 @@ package com.snowplowanalytics.refererparser
 
 import cats.Eval
 import cats.effect.IO
-import org.specs2.{ScalaCheck, Specification}
+import cats.effect.unsafe.implicits.global
 import org.scalacheck.Arbitrary._
+import org.specs2.{ScalaCheck, Specification}
 
 class ParseFuzzTest extends Specification with ScalaCheck {
   val resource   = getClass.getResource("/referers.json").getPath

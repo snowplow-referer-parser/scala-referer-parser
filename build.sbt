@@ -14,11 +14,9 @@
   * limitations under the License.
   */
 val root = (project in file("."))
-  .enablePlugins(ScalaUnidocPlugin, GhpagesPlugin)
   .settings(
     name := "scala-referer-parser",
     organization := "com.snowplowanalytics",
-    version := "1.1.0",
     description := "Library for extracting marketing attribution data from referer URLs",
     scalaVersion := "2.13.8",
     crossScalaVersions := Seq("2.12.15", "2.13.8"),
@@ -36,3 +34,4 @@ val root = (project in file("."))
   )
   .settings(BuildSettings.publishSettings)
   .settings(BuildSettings.docSettings)
+  .enablePlugins(SiteScaladocPlugin, PreprocessPlugin)

@@ -1,8 +1,9 @@
 # referer-parser Scala library
 
-[![Build Status](https://travis-ci.org/snowplow-referer-parser/scala-referer-parser.svg?branch=develop)](https://travis-ci.org/snowplow-referer-parser/scala-referer-parser)
-[![Gitter](https://badges.gitter.im/snowplow-referer-parser/scala-referer-parser.svg)](https://gitter.im/snowplow-referer-parser/scala-referer-parser?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge)
-[![codecov](https://codecov.io/gh/snowplow-referer-parser/scala-referer-parser/branch/develop/graph/badge.svg)](https://codecov.io/gh/snowplow-referer-parser/scala-referer-parser)
+[![Build Status][ci-image]][ci]
+[![Maven Central][release-image]][releases]
+[![Coverage Status][coveralls-image]][coveralls]
+[![Gitter][chat-image]][chat]
 
 This is the Scala implementation of [referer-parser][referer-parser], the library for extracting attribution data from referer _(sic)_ URLs.
 
@@ -92,3 +93,15 @@ limitations under the License.
 [cats-effect]: https://github.com/typelevel/cats-effect
 
 [license]: http://www.apache.org/licenses/LICENSE-2.0
+
+[ci]: https://github.com/snowplow-referer-parser/scala-referer-parser/actions?query=workflow%3ACI
+[ci-image]: https://github.com/snowplow-referer-parser/scala-referer-parser/workflows/CI/badge.svg
+
+[releases]: https://maven-badges.herokuapp.com/maven-central/com.snowplowanalytics/scala-referer-parser_2.13
+[release-image]: https://maven-badges.herokuapp.com/maven-central/com.snowplowanalytics/scala-referer-parser_2.13/badge.svg
+
+[coveralls]: https://coveralls.io/github/snowplow-referer-parser/scala-referer-parser?branch=master
+[coveralls-image]: https://coveralls.io/repos/github/snowplow-referer-parser/scala-referer-parser/badge.svg?branch=master
+
+[chat]: https://gitter.im/snowplow-referer-parser/scala-referer-parser?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge
+[chat-image]: https://badges.gitter.im/snowplow-referer-parser/scala-referer-parser.svg

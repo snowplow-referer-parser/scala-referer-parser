@@ -14,58 +14,37 @@
   * limitations under the License.
   */
 // Sbt
+import sbt.Keys._
 import sbt._
-import Keys._
 
-// Bintray
-import bintray.BintrayPlugin._
-import bintray.BintrayKeys._
+// dynver plugin
+import sbtdynver.DynVerPlugin.autoImport._
 
 //Scaladocs
-import sbtunidoc.ScalaUnidocPlugin.autoImport._
 import com.typesafe.sbt.site.SitePlugin.autoImport._
-import com.typesafe.sbt.SbtGit.GitKeys._
-
-// Scoverage
-import scoverage.ScoverageKeys._
+import com.typesafe.sbt.site.SiteScaladocPlugin.autoImport.SiteScaladoc
 
 object BuildSettings {
 
-  lazy val javaCompilerOptions = Seq(
-    "-source",
-    "1.8",
-    "-target",
-    "1.8"
-  )
-
-  lazy val publishSettings = bintraySettings ++ Seq(
-    publishMavenStyle := true,
+  lazy val publishSettings = Seq[Setting[_]](
     publishArtifact := true,
-    publishArtifact in Test := false,
-    licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html")),
-    bintrayOrganization := Some("snowplow"),
-    bintrayRepository := "snowplow-maven",
+    Test / publishArtifact := false,
     pomIncludeRepository := { _ => false },
     homepage := Some(url("http://snowplowanalytics.com")),
-    scmInfo := Some(
-      ScmInfo(
-        url("https://github.com/snowplow-referer-parser/scala-referer-parser"),
-        "scm:git@github.com:snowplow-referer-parser/scala-referer-parser.git"
+    licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0.html")),
+    ThisBuild / dynverVTagPrefix := false, // Otherwise git tags required to have v-prefix
+    developers := List(
+      Developer(
+        "Snowplow Analytics Ltd",
+        "Snowplow Analytics Ltd",
+        "support@snowplowanalytics.com",
+        url("https://snowplowanalytics.com")
       )
-    ),
-    pomExtra := (<developers>
-        <developer>
-          <name>Snowplow Analytics Ltd</name>
-            <email>support@snowplowanalytics.com</email>
-            <organization>Snowplow Analytics Ltd</organization>
-            <organizationUrl>http://snowplowanalytics.com</organizationUrl>
-        </developer>
-      </developers>)
+    )
   )
+  lazy val javaCompilerOptions = Seq("-source", "11", "-target", "11")
 
   lazy val docSettings = Seq(
-    addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), siteSubdirName in ScalaUnidoc),
-    gitRemoteRepo := "https://github.com/snowplow-referer-parser/scala-referer-parser.git",
-    siteSubdirName := ""
+    SiteScaladoc / siteSubdirName := s"${version.value}"
   )
 }

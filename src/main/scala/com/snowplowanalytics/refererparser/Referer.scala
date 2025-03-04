@@ -29,3 +29,4 @@ final case class InternalReferer(medium: Medium) extends Referer
 final case class SocialReferer(medium: Medium, source: String) extends Referer
 final case class EmailReferer(medium: Medium, source: String) extends Referer
 final case class PaidReferer(medium: Medium, source: String) extends Referer
+final case class ChatbotReferer(medium: Medium, source: String) extends Referer

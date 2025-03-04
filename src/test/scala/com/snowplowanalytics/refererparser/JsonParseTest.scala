@@ -72,6 +72,7 @@ class JsonParseTest extends Specification {
           case Some(SocialMedium)   => Some(SocialReferer(SocialMedium, test.source.get))
           case Some(EmailMedium)    => Some(EmailReferer(EmailMedium, test.source.get))
           case Some(PaidMedium)     => Some(PaidReferer(PaidMedium, test.source.get))
+          case Some(ChatbotMedium)  => Some(ChatbotReferer(ChatbotMedium, test.source.get))
           case _                    => throw new Exception(s"Bad medium: ${test.medium}")
         }
         val ioActual   = ioParser.parse(new URI(test.uri), Some(pageHost), internalDomains)

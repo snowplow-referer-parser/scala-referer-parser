@@ -29,6 +29,7 @@ object Medium {
       case SocialMedium.value   => Some(SocialMedium)
       case EmailMedium.value    => Some(EmailMedium)
       case PaidMedium.value     => Some(PaidMedium)
+      case ChatbotMedium.value  => Some(ChatbotMedium)
       case _                    => None
     }
 
@@ -38,6 +39,7 @@ object Medium {
   val Social   = SocialMedium
   val Email    = EmailMedium
   val Paid     = PaidMedium
+  val Chatbot  = ChatbotMedium
 }
 
 case object UnknownMedium extends Medium("unknown")
@@ -46,3 +48,4 @@ case object InternalMedium extends Medium("internal")
 case object SocialMedium extends Medium("social")
 case object EmailMedium extends Medium("email")
 case object PaidMedium extends Medium("paid")
+case object ChatbotMedium extends Medium("chatbot")

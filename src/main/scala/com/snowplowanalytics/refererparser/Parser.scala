@@ -120,6 +120,7 @@ class Parser private[refererparser] (referers: Map[String, RefererLookup]) {
                 case SocialMedium   => SocialReferer(SocialMedium, lookup.source)
                 case EmailMedium    => EmailReferer(EmailMedium, lookup.source)
                 case PaidMedium     => PaidReferer(PaidMedium, lookup.source)
+                case ChatbotMedium  => ChatbotReferer(ChatbotMedium, lookup.source)
               }
             }
             .getOrElse(UnknownReferer(UnknownMedium))

@@ -246,5 +246,37 @@
         "source": null,
         "term": null,
         "known": false
-    }           
+    },
+    {
+        "spec": "ChatGPT",
+        "uri": "https://www.chatgpt.com",
+        "medium": "chatbot",
+        "source": "ChatGPT",
+        "term": null,
+        "known": true
+    },
+    {
+        "spec": "Google Gemini",
+        "uri": "https://gemini.google.com",
+        "medium": "chatbot",
+        "source": "Google Gemini",
+        "term": null,
+        "known": true
+    },
+    {
+        "spec": "Microsoft Copilot",
+        "uri": "https://www.copilot.microsoft.com/account?u=1&id=1",
+        "medium": "chatbot",
+        "source": "Microsoft Copilot",
+        "term": null,
+        "known": true
+    },
+    {
+        "spec": "META.ai",
+        "uri": "https://meta.ai",
+        "medium": "chatbot",
+        "source": "META.ai",
+        "term": null,
+        "known": true
+    }
 ]

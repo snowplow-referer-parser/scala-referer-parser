@@ -396,6 +396,42 @@ class ParseTest extends Specification with DataTables {
         Some("keyword 1%")
       )
     )
+    test(
+      RefererSpec(
+        "ChatGPT",
+        "https://www.chatgpt.com",
+        Medium.Chatbot,
+        Some("ChatGPT"),
+        None
+      )
+    )
+    test(
+      RefererSpec(
+        "Google Gemini",
+        "https://gemini.google.com",
+        Medium.Chatbot,
+        Some("Google Gemini"),
+        None
+      )
+    )
+    test(
+      RefererSpec(
+        "Microsoft Copilot",
+        "https://www.copilot.microsoft.com/account?u=1&id=1",
+        Medium.Chatbot,
+        Some("Microsoft Copilot"),
+        None
+      )
+    )
+    test(
+      RefererSpec(
+        "META.ai",
+        "https://meta.ai",
+        Medium.Chatbot,
+        Some("META.ai"),
+        None
+      )
+    )
   }
 
   def genExpected(medium: Medium, source: Option[String], term: Option[String]) =
@@ -406,5 +442,6 @@ class ParseTest extends Specification with DataTables {
       case SocialMedium   => SocialReferer(SocialMedium, source.get)
       case EmailMedium    => EmailReferer(EmailMedium, source.get)
       case PaidMedium     => PaidReferer(PaidMedium, source.get)
+      case ChatbotMedium  => ChatbotReferer(ChatbotMedium, source.get)
     }
 }

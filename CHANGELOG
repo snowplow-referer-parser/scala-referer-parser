@@ -1,3 +1,8 @@
+Version 2.1.0 (2025-03-05)
+--------------------------
+Add chatbot medium (#127)
+Add sbt installation step to CI (#127)
+
 Version 2.0.0 (2022-03-07)
 --------------------------
 Migrate from travis to github actions (#120)

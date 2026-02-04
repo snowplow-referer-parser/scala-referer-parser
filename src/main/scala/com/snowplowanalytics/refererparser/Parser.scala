@@ -24,7 +24,7 @@ import cats.syntax.functor._
 import scala.collection.compat.immutable.LazyList
 
 trait CreateParser[F[_]] {
-  def create(filePath: String): F[Either[Exception, Parser]]
+  def create(filePath: String, referers: Map[String, RefererLookup] = Map.empty): F[Either[Exception, Parser]]
 }
 
 object CreateParser {
@@ -32,30 +32,37 @@ object CreateParser {
 
   implicit def syncCreateParser[F[_]: Sync]: CreateParser[F] =
     new CreateParser[F] {
-      def create(filePath: String): F[Either[Exception, Parser]] =
+      def create(filePath: String, referers: Map[String, RefererLookup]): F[Either[Exception, Parser]] =
         Sync[F]
-          .delay(Source.fromFile(filePath).mkString)
-          .map(rawJson => ParseReferers.loadJsonFromString(rawJson).map(referers => new Parser(referers)))
+          .blocking(Source.fromFile(filePath).mkString)
+          .map(rawJson => ParseReferers.loadJsonFromString(rawJson))
+          .map(_.map(fileReferers => new Parser(fileReferers, referers)))
     }
 
   implicit def evalCreateParser: CreateParser[Eval] =
     new CreateParser[Eval] {
-      def create(filePath: String): Eval[Either[Exception, Parser]] =
+      def create(filePath: String, referers: Map[String, RefererLookup]): Eval[Either[Exception, Parser]] =
         Eval
           .later(Source.fromFile(filePath).mkString)
-          .map(rawJson => ParseReferers.loadJsonFromString(rawJson).map(referers => new Parser(referers)))
+          .map(rawJson => ParseReferers.loadJsonFromString(rawJson))
+          .map(_.map(fileReferers => new Parser(fileReferers, referers)))
     }
 
   implicit def idCreateParser: CreateParser[Id] =
     new CreateParser[Id] {
-      def create(filePath: String): Id[Either[Exception, Parser]] = {
+      def create(filePath: String, referers: Map[String, RefererLookup]): Either[Exception, Parser] = {
         val rawJson = Source.fromFile(filePath).mkString
-        ParseReferers.loadJsonFromString(rawJson).map(referers => new Parser(referers))
+        ParseReferers
+          .loadJsonFromString(rawJson)
+          .map(fileReferers => new Parser(fileReferers, referers))
       }
     }
 }
 
-class Parser private[refererparser] (referers: Map[String, RefererLookup]) {
+class Parser private[refererparser] (
+  referersFromFile: Map[String, RefererLookup],
+  referersFromMap: Map[String, RefererLookup]
+) {
 
   private def toUri(uri: String): Option[URI] =
     if (uri == "")
@@ -145,17 +152,25 @@ class Parser private[refererparser] (referers: Map[String, RefererLookup]) {
   private def decodeUriPart(part: String): String = URLDecoder.decode(part, "UTF-8")
 
   private def lookupReferer(refererHost: String, refererPath: String): Option[RefererLookup] = {
-    val hosts = hostsToTry(refererHost)
-    val paths = pathsToTry(refererPath)
-
-    val results: LazyList[RefererLookup] = for {
-      path <- paths.to(LazyList)
-      host <- hosts.to(LazyList)
-      result <- referers.get(host + path).to(LazyList)
-    } yield result
+    val hosts = hostsToTry(refererHost).to(LazyList)
+    val paths = pathsToTry(refererPath).to(LazyList)
 
     // Since streams are lazy we don't calculate past the first element
-    results.headOption
+    val resultsFromMap: LazyList[RefererLookup] = for {
+      path <- paths
+      host <- hosts
+      result <- referersFromMap.get(host + path).to(LazyList)
+    } yield result
+
+    resultsFromMap.headOption.orElse {
+      val results: LazyList[RefererLookup] = for {
+        path <- paths
+        host <- hosts
+        result <- referersFromFile.get(host + path).to(LazyList)
+      } yield result
+
+      results.headOption
+    }
   }
 
   /**
@@ -180,4 +195,9 @@ class Parser private[refererparser] (referers: Map[String, RefererLookup]) {
       case Some(p) => List(refererPath, "/" + p, "")
       case None    => List("")
     }
+}
+
+object Parser {
+  def fromMap(referers: Map[String, RefererLookup]): Parser =
+    new Parser(Map.empty, referers)
 }

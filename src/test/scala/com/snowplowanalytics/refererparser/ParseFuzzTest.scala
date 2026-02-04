@@ -29,7 +29,7 @@ class ParseFuzzTest extends Specification with ScalaCheck {
 
   def e1 =
     prop { (refererUri: String, pageUri: String) =>
-      ioParser.parse(refererUri, pageUri) must beAnInstanceOf[Option[Referer]]
-      evalParser.parse(refererUri, pageUri) must beAnInstanceOf[Option[Referer]]
+      (ioParser.parse(refererUri, pageUri) must beAnInstanceOf[Option[Referer]]) and
+        (evalParser.parse(refererUri, pageUri) must beAnInstanceOf[Option[Referer]])
     }
 }

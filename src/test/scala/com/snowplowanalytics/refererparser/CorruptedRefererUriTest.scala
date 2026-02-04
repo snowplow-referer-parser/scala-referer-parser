@@ -16,19 +16,21 @@ package com.snowplowanalytics.refererparser
 import cats.Eval
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import org.specs2.mutable.Specification
+import org.specs2.Specification
 
 class CorruptedRefererUriTest extends Specification {
+  def is = s2"""
+  A corrupted referer URI should
+    return None, not throw an Exception $e1
+  """
 
   val resource   = getClass.getResource("/referers.json").getPath
   val ioParser   = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
   val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
 
-  "A corrupted referer URI" should {
-    "return None, not throw an Exception" in {
-      val refererUri = "http://bigcommerce%20wordpress%20plugin/"
-      ioParser.parse(refererUri) must beNone
-      evalParser.parse(refererUri) must beNone
-    }
+  def e1 = {
+    val refererUri = "http://bigcommerce%20wordpress%20plugin/"
+    (ioParser.parse(refererUri) must beNone) and
+      (evalParser.parse(refererUri) must beNone)
   }
 }

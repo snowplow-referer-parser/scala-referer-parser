@@ -16,21 +16,23 @@ package com.snowplowanalytics.refererparser
 import cats.Eval
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import org.specs2.mutable.Specification
+import org.specs2.Specification
 
 class CorruptedRefererQuerystringTest extends Specification {
+  def is = s2"""
+  A corrupted referer querystring" should
+    identify the search engine but not the search term $e1
+  """
 
   val resource   = getClass.getResource("/referers.json").getPath
   val ioParser   = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
   val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
 
-  "A corrupted referer querystring" should {
-    "identify the search engine but not the search term" in {
-      val refererUri =
-        "http://www.google.com/search?q=Psychic+Bazaar&sugexp=chrome,mod=3&sourceid=chrome&ie=UTF-8"
-      val expected = Some(SearchReferer(SearchMedium, "Google", Some("Psychic Bazaar")))
-      ioParser.parse(refererUri, "") must_== expected
-      evalParser.parse(refererUri, "") must_== expected
-    }
+  def e1 = {
+    val refererUri =
+      "http://www.google.com/search?q=Psychic+Bazaar&sugexp=chrome,mod=3&sourceid=chrome&ie=UTF-8"
+    val expected = Some(SearchReferer(SearchMedium, "Google", Some("Psychic Bazaar")))
+    (ioParser.parse(refererUri, "") must_== expected) and
+      (evalParser.parse(refererUri, "") must_== expected)
   }
 }

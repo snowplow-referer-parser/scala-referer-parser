@@ -16,20 +16,22 @@ package com.snowplowanalytics.refererparser
 import cats.Eval
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import org.specs2.mutable.Specification
+import org.specs2.Specification
 
 class CustomRefererJsonTest extends Specification {
+  def is = s2"""
+  Custom referer list should
+    give correct referer $e1
+  """
 
   val resource   = getClass.getResource("/custom-referers.json").getPath
   val ioParser   = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
   val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
 
-  "Custom referer list" should {
-    "give correct referer" in {
-      val refererUri = "https://www.example.org/?query=hello+world"
-      val expected   = Some(SearchReferer(SearchMedium, "Example", Some("hello world")))
-      expected shouldEqual ioParser.parse(refererUri)
-      expected shouldEqual evalParser.parse(refererUri)
-    }
+  def e1 = {
+    val refererUri = "https://www.example.org/?query=hello+world"
+    val expected   = Some(SearchReferer(SearchMedium, "Example", Some("hello world")))
+    (expected shouldEqual ioParser.parse(refererUri)) and
+      (expected shouldEqual evalParser.parse(refererUri))
   }
 }

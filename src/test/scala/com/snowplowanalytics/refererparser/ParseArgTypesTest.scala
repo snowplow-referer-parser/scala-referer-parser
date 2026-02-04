@@ -18,29 +18,32 @@ import java.net.URI
 import cats.Eval
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import org.specs2.mutable.Specification
+import org.specs2.Specification
 
 class ParseArgTypesTest extends Specification {
+  def is = s2"""
+  parse should
+    work the same regardless of which argument types are used to call it $e1 
+  """
+
   val resource   = getClass.getResource("/referers.json").getPath
   val ioParser   = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
   val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
 
-  "parse " should {
-    "work the same regardless of which argument types are used to call it" in {
-      val refererUri = "http://www.psychicbazaar.com/catalog/pendula"
-      val refererURI = new URI(refererUri)
-      val pageURI =
-        new URI("http://www.psychicbazaar.com/catalog/pendula/lo-scarabeo-silver-cone-pendulum")
-      val pageHost = pageURI.getHost
-      val expected = Some(InternalReferer(InternalMedium))
-      ioParser.parse(refererUri, pageHost) must_== expected
-      ioParser.parse(refererUri, pageURI) must_== expected
-      ioParser.parse(refererURI, pageHost) must_== expected
-      ioParser.parse(refererURI, pageURI) must_== expected
-      evalParser.parse(refererUri, pageHost) must_== expected
-      evalParser.parse(refererUri, pageURI) must_== expected
-      evalParser.parse(refererURI, pageHost) must_== expected
-      evalParser.parse(refererURI, pageURI) must_== expected
-    }
+  def e1 = {
+    val refererUri = "http://www.psychicbazaar.com/catalog/pendula"
+    val refererURI = new URI(refererUri)
+    val pageURI =
+      new URI("http://www.psychicbazaar.com/catalog/pendula/lo-scarabeo-silver-cone-pendulum")
+    val pageHost = pageURI.getHost
+    val expected = Some(InternalReferer(InternalMedium))
+    (ioParser.parse(refererUri, pageHost) must_== expected) and
+      (ioParser.parse(refererUri, pageURI) must_== expected) and
+      (ioParser.parse(refererURI, pageHost) must_== expected) and
+      (ioParser.parse(refererURI, pageURI) must_== expected) and
+      (evalParser.parse(refererUri, pageHost) must_== expected) and
+      (evalParser.parse(refererUri, pageURI) must_== expected) and
+      (evalParser.parse(refererURI, pageHost) must_== expected) and
+      (evalParser.parse(refererURI, pageURI) must_== expected)
   }
 }

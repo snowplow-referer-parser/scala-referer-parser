@@ -21,15 +21,15 @@ import org.specs2.{ScalaCheck, Specification}
 
 class ParseFuzzTest extends Specification with ScalaCheck {
   val resource   = getClass.getResource("/referers.json").getPath
-  val ioParser   = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
-  val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
+  val ioParser   = CreateParser[IO].createFromFile(resource).unsafeRunSync().fold(throw _, identity)
+  val evalParser = CreateParser[Eval].createFromFile(resource).value.fold(throw _, identity)
 
   def is =
     "The parse function should work for any pair of referer and page Strings" ! e1
 
   def e1 =
     prop { (refererUri: String, pageUri: String) =>
-      ioParser.parse(refererUri, pageUri) must beAnInstanceOf[Option[Referer]]
-      evalParser.parse(refererUri, pageUri) must beAnInstanceOf[Option[Referer]]
+      (ioParser.parse(refererUri, pageUri) must beAnInstanceOf[Option[Referer]]) and
+        (evalParser.parse(refererUri, pageUri) must beAnInstanceOf[Option[Referer]])
     }
 }

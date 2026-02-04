@@ -1,18 +1,16 @@
 /**
-  * Copyright 2012-2022 Snowplow Analytics Ltd
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *      http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
+ * Copyright 2012-present Snowplow Analytics Ltd
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.snowplowanalytics.refererparser
 
 import java.net.{URI, URLDecoder}
@@ -151,8 +149,8 @@ class Parser private[refererparser] (referers: Map[String, RefererLookup]) {
     val paths = pathsToTry(refererPath)
 
     val results: LazyList[RefererLookup] = for {
-      path   <- paths.to(LazyList)
-      host   <- hosts.to(LazyList)
+      path <- paths.to(LazyList)
+      host <- hosts.to(LazyList)
       result <- referers.get(host + path).to(LazyList)
     } yield result
 
@@ -161,9 +159,9 @@ class Parser private[refererparser] (referers: Map[String, RefererLookup]) {
   }
 
   /**
-    * Splits a full hostname into possible hosts to lookup.
-    * For instance, hostsToTry("www.google.com") == List("www.google.com", "google.com", "com")
-    */
+   * Splits a full hostname into possible hosts to lookup. For instance,
+   * hostsToTry("www.google.com") == List("www.google.com", "google.com", "com")
+   */
   private def hostsToTry(refererHost: String): List[String] =
     refererHost
       .split("\\.")
@@ -173,9 +171,10 @@ class Parser private[refererparser] (referers: Map[String, RefererLookup]) {
       .map(s => s.substring(0, s.length - 1))
 
   /**
-    * Splits a full path into possible paths to try. Includes full path, no path and first path level.
-    * For instance, pathsToTry("google.com/images/1/2/3") == List("/images/1/2/3", "/images", "")
-    */
+   * Splits a full path into possible paths to try. Includes full path, no path and first path
+   * level. For instance, pathsToTry("google.com/images/1/2/3") == List("/images/1/2/3", "/images",
+   * "")
+   */
   private def pathsToTry(refererPath: String): List[String] =
     refererPath.split("/").find(_ != "") match {
       case Some(p) => List(refererPath, "/" + p, "")

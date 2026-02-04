@@ -16,18 +16,21 @@ package com.snowplowanalytics.refererparser
 import cats.Eval
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import org.specs2.mutable.Specification
+import org.specs2.Specification
 
 class NoRefererUriTest extends Specification {
+  def is = s2"""
+  An empty referer URI" should
+    return no referal $e1
+  """
+
   val resource   = getClass.getResource("/referers.json").getPath
   val ioParser   = CreateParser[IO].create(resource).unsafeRunSync().fold(throw _, identity)
   val evalParser = CreateParser[Eval].create(resource).value.fold(throw _, identity)
 
-  "An empty referer URI" should {
-    "return no referal" in {
-      val pageHost = "www.psychicbazaar.com"
-      ioParser.parse("", pageHost) must beNone
-      evalParser.parse("", pageHost) must beNone
-    }
+  def e1 = {
+    val pageHost = "www.psychicbazaar.com"
+    (ioParser.parse("", pageHost) must beNone) and
+      (evalParser.parse("", pageHost) must beNone)
   }
 }

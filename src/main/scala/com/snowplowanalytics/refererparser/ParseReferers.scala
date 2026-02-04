@@ -1,18 +1,16 @@
 /**
-  * Copyright 2012-2022 Snowplow Analytics Ltd
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *      http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
+ * Copyright 2012-present Snowplow Analytics Ltd
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.snowplowanalytics.refererparser
 
 import cats.implicits._
@@ -45,8 +43,7 @@ private[refererparser] object ParseReferers {
         val (medium, entries) = mediumEntries
         entries.foldLeft(map) { (mapInner, sourceEntry) =>
           val (source, entry) = sourceEntry
-          mapInner ++ entry
-            .domains
+          mapInner ++ entry.domains
             .map(domain => domain -> RefererLookup(medium, source, entry.parameters.getOrElse(Nil)))
         }
       }
@@ -58,11 +55,10 @@ private[refererparser] object ParseReferers {
     for {
       mediumKeys <- someOrExcept(c.keys, "Referers json must be an object")
       mediumEntries <-
-        mediumKeys
-          .toList
+        mediumKeys.toList
           .map(k =>
             for {
-              medium      <- someOrExcept(Medium.fromString(k), s"Unrecognized medium: '$k'")
+              medium <- someOrExcept(Medium.fromString(k), s"Unrecognized medium: '$k'")
               sourceNames <- someOrExcept(c.downField(k).keys, s"Medium '$k' not an object")
               sourceEntriesJson = sourceNames.map(mediumName => c.downField(k).downField(mediumName))
               sourceEntries <- sourceEntriesJson.map(_.as[JsonEntry]).toList.sequence

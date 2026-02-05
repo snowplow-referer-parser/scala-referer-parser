@@ -19,22 +19,15 @@ import io.circe.generic.semiauto._
 import io.circe.parser._
 
 /** Handles loading and storing referers */
-private[refererparser] object ParseReferers {
-  final case class RefererEntry(
-    medium: Medium,
-    source: String,
+object ParseReferers {
+  private final case class JsonEntry(
     domains: List[String],
     parameters: Option[List[String]]
   )
 
-  final case class JsonEntry(
-    domains: List[String],
-    parameters: Option[List[String]]
-  )
+  implicit private val jsonEntryDecoder: Decoder[JsonEntry] = deriveDecoder[JsonEntry]
 
-  implicit val jsonEntryDecoder: Decoder[JsonEntry] = deriveDecoder[JsonEntry]
-
-  def loadJsonFromString(rawJson: String): Either[Exception, Map[String, RefererLookup]] =
+  private[refererparser] def loadJsonFromString(rawJson: String): Either[Exception, Map[String, RefererLookup]] =
     parse(rawJson).flatMap(loadJson)
 
   def loadJson(doc: Json): Either[Exception, Map[String, RefererLookup]] =

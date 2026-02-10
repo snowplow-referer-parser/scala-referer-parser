@@ -41,7 +41,7 @@ class JsonParseTest extends Specification {
 
   implicit val testCaseDecoder: Decoder[TestCase] = deriveDecoder[TestCase]
 
-  val testString = fromFile("src/test/resources/referer-tests.json").getLines().mkString
+  val testString = fromFile("src/test/resources/expectations.json").getLines().mkString
 
   // Convert the JSON to a List of TestCase
   val eitherTests = for {
@@ -67,15 +67,11 @@ class JsonParseTest extends Specification {
 
   def e1 =
     for (test <- tests) yield {
-      val expected = Medium.fromString(test.medium) match {
-        case Some(UnknownMedium)  => Some(UnknownReferer(UnknownMedium))
-        case Some(SearchMedium)   => Some(SearchReferer(SearchMedium, test.source.get, test.term))
-        case Some(InternalMedium) => Some(InternalReferer(InternalMedium))
-        case Some(SocialMedium)   => Some(SocialReferer(SocialMedium, test.source.get))
-        case Some(EmailMedium)    => Some(EmailReferer(EmailMedium, test.source.get))
-        case Some(PaidMedium)     => Some(PaidReferer(PaidMedium, test.source.get))
-        case Some(ChatbotMedium)  => Some(ChatbotReferer(ChatbotMedium, test.source.get))
-        case _                    => throw new Exception(s"Bad medium: ${test.medium}")
+      val expected = (test.medium, test.source) match {
+        case ("internal", _) => Some(InternalReferer)
+        case ("unknown", _)  => Some(UnknownReferer)
+        case (_, Some(src))  => Some(ExternalReferer(test.medium, src, test.term))
+        case _               => Some(UnknownReferer)
       }
       val ioActual   = ioParser.parse(new URI(test.uri), Some(pageHost), internalDomains)
       val evalActual = evalParser.parse(new URI(test.uri), Some(pageHost), internalDomains)

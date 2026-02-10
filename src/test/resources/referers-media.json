@@ -1,0 +1,23 @@
+{
+    "video": {
+        "YouTube": {
+            "domains": [
+                "youtube.com",
+                "youtu.be"
+            ],
+            "parameters": [
+                "v"
+            ]
+        }
+    },
+    "podcast": {
+        "Spotify": {
+            "domains": [
+                "spotify.com"
+            ],
+            "parameters": [
+                "episode"
+            ]
+        }
+    }
+}

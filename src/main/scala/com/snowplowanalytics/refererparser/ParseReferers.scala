@@ -44,16 +44,15 @@ object ParseReferers {
 
   private def parseReferersJson(
     c: ACursor
-  ): Either[Exception, Map[Medium, Map[String, JsonEntry]]] =
+  ): Either[Exception, Map[String, Map[String, JsonEntry]]] =
     for {
       mediumKeys <- someOrExcept(c.keys, "Referers json must be an object")
       mediumEntries <-
         mediumKeys.toList
-          .map(k =>
+          .map(medium =>
             for {
-              medium <- someOrExcept(Medium.fromString(k), s"Unrecognized medium: '$k'")
-              sourceNames <- someOrExcept(c.downField(k).keys, s"Medium '$k' not an object")
-              sourceEntriesJson = sourceNames.map(mediumName => c.downField(k).downField(mediumName))
+              sourceNames <- someOrExcept(c.downField(medium).keys, s"Medium '$medium' not an object")
+              sourceEntriesJson = sourceNames.map(mediumName => c.downField(medium).downField(mediumName))
               sourceEntries <- sourceEntriesJson.map(_.as[JsonEntry]).toList.sequence
             } yield medium -> sourceNames.zip(sourceEntries).toMap
           )

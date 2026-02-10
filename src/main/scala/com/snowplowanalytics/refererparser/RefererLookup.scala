@@ -15,7 +15,7 @@ package com.snowplowanalytics.refererparser
 
 /* Hold the structure of a referer lookup */
 final case class RefererLookup(
-  medium: Medium,
+  medium: String,
   source: String,
   parameters: List[String]
 )

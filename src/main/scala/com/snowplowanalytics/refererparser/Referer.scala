@@ -14,20 +14,27 @@
 package com.snowplowanalytics.refererparser
 
 /**
- * Referer - returned from parse, a sealed hierarchy which can be an UnknownReferer, SearchReferer,
- * InternalReferer, SocialReferer, EmailReferer, or PaidReferer.
+ * Referer - returned from parse, representing any type of referer source. Can be internal, unknown,
+ * or external with a specific medium type.
  */
-sealed trait Referer {
-  def medium: Medium
-}
-final case class UnknownReferer(medium: Medium) extends Referer
-final case class SearchReferer(
-  medium: Medium,
+sealed trait Referer
+
+/**
+ * Internal referer - traffic from the same domain as the page.
+ */
+case object InternalReferer extends Referer
+
+/**
+ * Unknown referer - traffic from an unrecognized source.
+ */
+case object UnknownReferer extends Referer
+
+/**
+ * External referer - traffic from a known external source with a specific medium. All external
+ * referers have a source and may optionally have a term extracted from query parameters.
+ */
+final case class ExternalReferer(
+  medium: String,
   source: String,
   term: Option[String]
 ) extends Referer
-final case class InternalReferer(medium: Medium) extends Referer
-final case class SocialReferer(medium: Medium, source: String) extends Referer
-final case class EmailReferer(medium: Medium, source: String) extends Referer
-final case class PaidReferer(medium: Medium, source: String) extends Referer
-final case class ChatbotReferer(medium: Medium, source: String) extends Referer

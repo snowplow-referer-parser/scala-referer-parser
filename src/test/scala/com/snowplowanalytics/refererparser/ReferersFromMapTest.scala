@@ -36,7 +36,7 @@ class ReferersFromMapTest extends Specification {
   def e1 = {
     // Google is defined in the file as a search engine, but we override it to be social
     val referers = Map(
-      "www.google.com" -> RefererLookup(SocialMedium, "Google Custom", Nil)
+      "www.google.com" -> RefererLookup("social", "Google Custom", Nil)
     )
 
     val ioParser = CreateParser[IO]
@@ -50,16 +50,15 @@ class ReferersFromMapTest extends Specification {
       .fold(throw _, identity)
 
     val refererUri = "http://www.google.com/search?q=test"
-    val expected   = Some(SocialReferer(SocialMedium, "Google Custom"))
+    val expected   = Some(ExternalReferer("social", "Google Custom", None))
 
-    // Custom referer should override file referer
     (expected shouldEqual ioParser.parse(refererUri)) and
       (expected shouldEqual evalParser.parse(refererUri))
   }
 
   def e2 = {
     val referers = Map(
-      "www.example.org" -> RefererLookup(SearchMedium, "Example Custom", List("q"))
+      "www.example.org" -> RefererLookup("search", "Example Custom", List("q"))
     )
 
     val ioParser = CreateParser[IO]
@@ -67,19 +66,19 @@ class ReferersFromMapTest extends Specification {
       .unsafeRunSync()
       .fold(throw _, identity)
 
-    // Yahoo is in the file but not in custom referers, should use file definition
+    // Yahoo is defined in the file and not in the map
     val yahooUri    = "http://search.yahoo.com/search?p=test"
     val yahooResult = ioParser.parse(yahooUri)
 
-    yahooResult must beSome.which { referer =>
-      (referer must beAnInstanceOf[SearchReferer]) and
-        (referer.asInstanceOf[SearchReferer].source shouldEqual "Yahoo!")
+    yahooResult must beSome.like { case ExternalReferer(medium, source, _) =>
+      (medium shouldEqual "search") and
+        (source shouldEqual "Yahoo!")
     }
   }
 
   def e3 = {
     val referers = Map(
-      "custom.search.com" -> RefererLookup(SearchMedium, "Custom Search", List("query", "q"))
+      "custom.search.com" -> RefererLookup("search", "Custom Search", List("query", "q"))
     )
 
     val ioParser = CreateParser[IO]
@@ -88,26 +87,24 @@ class ReferersFromMapTest extends Specification {
       .fold(throw _, identity)
 
     val refererUri = "http://custom.search.com?query=scala+programming"
-    val expected   = Some(SearchReferer(SearchMedium, "Custom Search", Some("scala programming")))
+    val expected   = Some(ExternalReferer("search", "Custom Search", Some("scala programming")))
 
     expected shouldEqual ioParser.parse(refererUri)
   }
 
   def e4 = {
     val referers = Map(
-      "custom.example.com" -> RefererLookup(SocialMedium, "Custom Social", Nil),
-      "search.custom.com" -> RefererLookup(SearchMedium, "Custom Search", List("q"))
+      "custom.example.com" -> RefererLookup("social", "Custom Social", Nil),
+      "search.custom.com" -> RefererLookup("search", "Custom Search", List("q"))
     )
 
     val parser = Parser.fromMap(referers)
 
-    // Should find referer
     val socialUri      = "http://custom.example.com/page"
-    val socialExpected = Some(SocialReferer(SocialMedium, "Custom Social"))
+    val socialExpected = Some(ExternalReferer("social", "Custom Social", None))
 
-    // Should find search referer with term
     val searchUri      = "http://search.custom.com?q=test+query"
-    val searchExpected = Some(SearchReferer(SearchMedium, "Custom Search", Some("test query")))
+    val searchExpected = Some(ExternalReferer("search", "Custom Search", Some("test query")))
 
     (socialExpected shouldEqual parser.parse(socialUri)) and
       (searchExpected shouldEqual parser.parse(searchUri))
@@ -115,47 +112,43 @@ class ReferersFromMapTest extends Specification {
 
   def e5 = {
     val referers = Map(
-      "custom.example.com" -> RefererLookup(SocialMedium, "Custom Social", Nil)
+      "custom.example.com" -> RefererLookup("social", "Custom Social", Nil)
     )
 
     val parser = Parser.fromMap(referers)
 
-    // Google is not in custom map (and we're not loading the file), should be unknown
     val googleUri = "http://www.google.com/search?q=test"
-    val expected  = Some(UnknownReferer(UnknownMedium))
+    val expected  = Some(UnknownReferer)
 
     expected shouldEqual parser.parse(googleUri)
   }
 
   def e6 = {
     val referers = Map(
-      "example.com" -> RefererLookup(SearchMedium, "Example", List("q"))
+      "example.com" -> RefererLookup("search", "Example", List("q"))
     )
 
     val parser = Parser.fromMap(referers)
 
-    // Should match subdomain
     val subdomainUri = "http://www.example.com?q=test"
-    val expected     = Some(SearchReferer(SearchMedium, "Example", Some("test")))
+    val expected     = Some(ExternalReferer("search", "Example", Some("test")))
 
     expected shouldEqual parser.parse(subdomainUri)
   }
 
   def e7 = {
     val referers = Map(
-      "example.com/search" -> RefererLookup(SearchMedium, "Example Search", List("q")),
-      "example.com" -> RefererLookup(SocialMedium, "Example Social", Nil)
+      "example.com/search" -> RefererLookup("search", "Example Search", List("q")),
+      "example.com" -> RefererLookup("social", "Example Social", Nil)
     )
 
     val parser = Parser.fromMap(referers)
 
-    // Should match path-specific referer
     val searchUri      = "http://example.com/search?q=test"
-    val searchExpected = Some(SearchReferer(SearchMedium, "Example Search", Some("test")))
+    val searchExpected = Some(ExternalReferer("search", "Example Search", Some("test")))
 
-    // Should match domain-only referer
     val socialUri      = "http://example.com/other"
-    val socialExpected = Some(SocialReferer(SocialMedium, "Example Social"))
+    val socialExpected = Some(ExternalReferer("social", "Example Social", None))
 
     (searchExpected shouldEqual parser.parse(searchUri)) and
       (socialExpected shouldEqual parser.parse(socialUri))

@@ -31,7 +31,7 @@ class CorruptedRefererQuerystringTest extends Specification {
   def e1 = {
     val refererUri =
       "http://www.google.com/search?q=Psychic+Bazaar&sugexp=chrome,mod=3&sourceid=chrome&ie=UTF-8"
-    val expected = Some(SearchReferer(SearchMedium, "Google", Some("Psychic Bazaar")))
+    val expected = Some(ExternalReferer("search", "Google", Some("Psychic Bazaar")))
     (ioParser.parse(refererUri, "") must_== expected) and
       (evalParser.parse(refererUri, "") must_== expected)
   }

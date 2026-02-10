@@ -30,7 +30,7 @@ class NoPageUriTest extends Specification {
   val refererUri =
     "http://www.google.com/search?q=gateway+oracle+cards+denise+linn&hl=en&client=safari"
   val expected = Some(
-    SearchReferer(SearchMedium, "Google", Some("gateway oracle cards denise linn"))
+    ExternalReferer("search", "Google", Some("gateway oracle cards denise linn"))
   )
 
   val resource   = getClass.getResource("/referers.json").getPath

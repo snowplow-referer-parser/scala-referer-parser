@@ -108,33 +108,21 @@ class Parser private[refererparser] (
         pageHost.exists(_.equals(host)) ||
         internalDomains.map(_.trim()).contains(host)
       )
-        Some(InternalReferer(InternalMedium))
+        Some(InternalReferer)
       else
         Some(
           lookupReferer(host, path)
             .map { lookup =>
-              lookup.medium match {
-                case UnknownMedium => UnknownReferer(UnknownMedium)
-                case SearchMedium =>
-                  SearchReferer(
-                    SearchMedium,
-                    lookup.source,
-                    query.flatMap(q => extractSearchTerm(q, lookup.parameters))
-                  )
-                case InternalMedium => InternalReferer(InternalMedium)
-                case SocialMedium   => SocialReferer(SocialMedium, lookup.source)
-                case EmailMedium    => EmailReferer(EmailMedium, lookup.source)
-                case PaidMedium     => PaidReferer(PaidMedium, lookup.source)
-                case ChatbotMedium  => ChatbotReferer(ChatbotMedium, lookup.source)
-              }
+              val term = query.flatMap(q => extractTerm(q, lookup.parameters))
+              ExternalReferer(lookup.medium, lookup.source, term)
             }
-            .getOrElse(UnknownReferer(UnknownMedium))
+            .getOrElse(UnknownReferer)
         )
     else
       None
   }
 
-  private def extractSearchTerm(query: String, possibleParameters: List[String]): Option[String] =
+  private def extractTerm(query: String, possibleParameters: List[String]): Option[String] =
     extractQueryParams(query).find(p => possibleParameters.contains(p._1)).map(_._2)
 
   private def extractQueryParams(query: String): List[(String, String)] =

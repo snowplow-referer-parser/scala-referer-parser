@@ -1,3 +1,11 @@
+Version 3.0.0 (2025-02-26)
+--------------------------
+Close the Source in Parser (#132)
+Remove hardcoded list of mediums and allow any value (#131)
+Make ParseReferers.loadJson public (#130)
+Make it possible to pass some custom referers along with the file (#130)
+Upgrade Java to 21 (#130)
+
 Version 2.1.0 (2025-03-05)
 --------------------------
 Add chatbot medium (#127)

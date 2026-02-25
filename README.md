@@ -16,7 +16,7 @@ The Scala implementation is a core component of [Snowplow][snowplow], the open-s
 You can add the following to your SBT config:
 
 ```scala
-val refererParser = "com.snowplowanalytics" %% "scala-referer-parser" % "2.1.0"
+val refererParser = "com.snowplowanalytics" %% "scala-referer-parser" % "3.0.0"
 ```
 
 ### Usage
@@ -43,7 +43,7 @@ val io: EitherT[IO, Exception, Unit] = for {
   referer1 <- EitherT.fromOption[IO](parser.parse(refererUrl, pageUrl),
     new Exception("No parseable referer"))
   _ <- EitherT.right(IO { println(referer1) })
-    // => SearchReferer(SearchMedium,Google,Some(gateway oracle cards denise linn))
+    // => ExternalReferer("search","Google",Some("gateway oracle cards denise linn"))
 
   // You can provide a list of domains which should be considered internal
   referer2 <- EitherT.fromOption[IO](parser.parse(
@@ -52,7 +52,7 @@ val io: EitherT[IO, Exception, Unit] = for {
       List("www.subdomain1.snowplowanalytics.com", "www.subdomain2.snowplowanalytics.com")
     ), new Exception("No parseable referer"))
   _ <- EitherT.right(IO { println(referer2) })
-    // => InternalReferer(InternalMedium)
+    // => InternalReferer
 
   // Various overloads are available for common cases, for instance
   maybeReferer1 = parser.parse("https://www.bing.com/search?q=snowplow")
@@ -63,7 +63,48 @@ val io: EitherT[IO, Exception, Unit] = for {
 io.value.unsafeRunSync()
 ```
 
+All known referers are returned as `ExternalReferer(medium, source, term)` where `medium` is a plain `String` (e.g. `"search"`, `"social"`, `"email"`). Traffic from the same domain is `InternalReferer`, and unrecognised sources are `UnknownReferer`.
+
 More examples can be seen in [ParseTest.scala][parsetest-scala]. See [Parser.scala][parser-scala] for all overloads.
+
+#### Custom referers
+
+You can augment or override the built-in referers database by passing a `Map[String, RefererLookup]` to `CreateParser.create`. Entries in the map take precedence over entries from the file.
+
+```scala
+import com.snowplowanalytics.refererparser._
+import cats.effect.IO
+
+val customReferers = Map(
+  "custom.search.com" -> RefererLookup("search", "Custom Search", List("q")),
+  "www.google.com"    -> RefererLookup("social", "Google Custom", Nil) // overrides built-in
+)
+
+val parser = CreateParser[IO]
+  .create("/opt/referers/referers.json", customReferers)
+  .unsafeRunSync()
+  .fold(throw _, identity)
+```
+
+If you don't need a referers file at all, use `Parser.fromMap`:
+
+```scala
+val parser = Parser.fromMap(Map(
+  "example.com" -> RefererLookup("search", "Example", List("q"))
+))
+```
+
+#### Parsing a `Json` document directly
+
+`ParseReferers.loadJson` is public and lets you build the lookup map from an already-parsed Circe `Json` document:
+
+```scala
+import com.snowplowanalytics.refererparser.ParseReferers
+import io.circe.parser.parse
+
+val json = parse("""{"search":{"Google":{"domains":["google.com"],"parameters":["q"]}}}""").toOption.get
+val referers: Map[String, RefererLookup] = ParseReferers.loadJson(json).fold(throw _, identity)
+```
 
 [parsetest-scala]: src/test/scala/com/snowplowanalytics/refererparser/ParseTest.scala
 [parser-scala]: src/main/scala/com/snowplowanalytics/refererparser/Parser.scala

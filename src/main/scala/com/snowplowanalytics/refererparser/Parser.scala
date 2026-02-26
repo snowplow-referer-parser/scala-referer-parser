@@ -18,7 +18,7 @@ import java.net.{URI, URLDecoder}
 import scala.io.Source
 
 import cats.{Eval, Id}
-import cats.effect.Sync
+import cats.effect.{Resource, Sync}
 import cats.syntax.either._
 import cats.syntax.functor._
 import scala.collection.compat.immutable.LazyList
@@ -33,8 +33,9 @@ object CreateParser {
   implicit def syncCreateParser[F[_]: Sync]: CreateParser[F] =
     new CreateParser[F] {
       def create(filePath: String, referers: Map[String, RefererLookup]): F[Either[Exception, Parser]] =
-        Sync[F]
-          .blocking(Source.fromFile(filePath).mkString)
+        Resource
+          .make(Sync[F].blocking(Source.fromFile(filePath)))(s => Sync[F].blocking(s.close()))
+          .use(s => Sync[F].blocking(s.mkString))
           .map(rawJson => ParseReferers.loadJsonFromString(rawJson))
           .map(_.map(fileReferers => new Parser(fileReferers, referers)))
     }
@@ -43,7 +44,11 @@ object CreateParser {
     new CreateParser[Eval] {
       def create(filePath: String, referers: Map[String, RefererLookup]): Eval[Either[Exception, Parser]] =
         Eval
-          .later(Source.fromFile(filePath).mkString)
+          .later {
+            val s = Source.fromFile(filePath);
+            try s.mkString
+            finally s.close()
+          }
           .map(rawJson => ParseReferers.loadJsonFromString(rawJson))
           .map(_.map(fileReferers => new Parser(fileReferers, referers)))
     }
@@ -51,7 +56,10 @@ object CreateParser {
   implicit def idCreateParser: CreateParser[Id] =
     new CreateParser[Id] {
       def create(filePath: String, referers: Map[String, RefererLookup]): Either[Exception, Parser] = {
-        val rawJson = Source.fromFile(filePath).mkString
+        val s = Source.fromFile(filePath)
+        val rawJson =
+          try s.mkString
+          finally s.close()
         ParseReferers
           .loadJsonFromString(rawJson)
           .map(fileReferers => new Parser(fileReferers, referers))

@@ -1,5 +1,8 @@
 name: RELEASE
 
+permissions:
+  contents: write # For pushing to gh-pages branch
+
 on:
   push:
     tags:

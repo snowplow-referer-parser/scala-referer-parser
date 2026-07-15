@@ -24,7 +24,7 @@ import cats.syntax.functor._
 import scala.collection.compat.immutable.LazyList
 
 trait CreateParser[F[_]] {
-  def create(filePath: String, referers: Map[String, RefererLookup] = Map.empty): F[Either[Exception, Parser]]
+  def create(filePath: String, referers: ParsedReferers = ParsedReferers.empty): F[Either[Exception, Parser]]
 }
 
 object CreateParser {
@@ -32,7 +32,7 @@ object CreateParser {
 
   implicit def syncCreateParser[F[_]: Sync]: CreateParser[F] =
     new CreateParser[F] {
-      def create(filePath: String, referers: Map[String, RefererLookup]): F[Either[Exception, Parser]] =
+      def create(filePath: String, referers: ParsedReferers): F[Either[Exception, Parser]] =
         Resource
           .make(Sync[F].blocking(Source.fromFile(filePath)))(s => Sync[F].blocking(s.close()))
           .use(s => Sync[F].blocking(s.mkString))
@@ -42,7 +42,7 @@ object CreateParser {
 
   implicit def evalCreateParser: CreateParser[Eval] =
     new CreateParser[Eval] {
-      def create(filePath: String, referers: Map[String, RefererLookup]): Eval[Either[Exception, Parser]] =
+      def create(filePath: String, referers: ParsedReferers): Eval[Either[Exception, Parser]] =
         Eval
           .later {
             val s = Source.fromFile(filePath);
@@ -55,7 +55,7 @@ object CreateParser {
 
   implicit def idCreateParser: CreateParser[Id] =
     new CreateParser[Id] {
-      def create(filePath: String, referers: Map[String, RefererLookup]): Either[Exception, Parser] = {
+      def create(filePath: String, referers: ParsedReferers): Either[Exception, Parser] = {
         val s = Source.fromFile(filePath)
         val rawJson =
           try s.mkString
@@ -68,9 +68,21 @@ object CreateParser {
 }
 
 class Parser private[refererparser] (
-  referersFromFile: Map[String, RefererLookup],
-  referersFromMap: Map[String, RefererLookup]
+  referersFromFile: ParsedReferers,
+  referersFromMap: ParsedReferers
 ) {
+
+  /**
+   * Classifies an injected `utm_source` query parameter value (e.g. "chatgpt.com") against the
+   * referer database's `utm_sources` entries. Unlike the `parse` methods, this does not look at the
+   * referer URI: some sites inject `utm_source` in place of (or in addition to) a Referer header.
+   * Returns `None` when the value is not recognised. The `term` is always `None` for now.
+   */
+  def parseUtmSource(utmSource: String): Option[ExternalReferer] =
+    referersFromMap.byUtmSource
+      .get(utmSource)
+      .orElse(referersFromFile.byUtmSource.get(utmSource))
+      .map(lookup => ExternalReferer(lookup.medium, lookup.source, None))
 
   private def toUri(uri: String): Option[URI] =
     if (uri == "")
@@ -155,14 +167,14 @@ class Parser private[refererparser] (
     val resultsFromMap: LazyList[RefererLookup] = for {
       path <- paths
       host <- hosts
-      result <- referersFromMap.get(host + path).to(LazyList)
+      result <- referersFromMap.byDomain.get(host + path).to(LazyList)
     } yield result
 
     resultsFromMap.headOption.orElse {
       val results: LazyList[RefererLookup] = for {
         path <- paths
         host <- hosts
-        result <- referersFromFile.get(host + path).to(LazyList)
+        result <- referersFromFile.byDomain.get(host + path).to(LazyList)
       } yield result
 
       results.headOption
@@ -195,5 +207,8 @@ class Parser private[refererparser] (
 
 object Parser {
   def fromMap(referers: Map[String, RefererLookup]): Parser =
-    new Parser(Map.empty, referers)
+    new Parser(ParsedReferers.empty, ParsedReferers.fromDomainMap(referers))
+
+  def fromReferers(referers: ParsedReferers): Parser =
+    new Parser(ParsedReferers.empty, referers)
 }

@@ -40,12 +40,12 @@ class ReferersFromMapTest extends Specification {
     )
 
     val ioParser = CreateParser[IO]
-      .create(resource, referers)
+      .create(resource, ParsedReferers.fromDomainMap(referers))
       .unsafeRunSync()
       .fold(throw _, identity)
 
     val evalParser = CreateParser[Eval]
-      .create(resource, referers)
+      .create(resource, ParsedReferers.fromDomainMap(referers))
       .value
       .fold(throw _, identity)
 
@@ -62,7 +62,7 @@ class ReferersFromMapTest extends Specification {
     )
 
     val ioParser = CreateParser[IO]
-      .create(resource, referers)
+      .create(resource, ParsedReferers.fromDomainMap(referers))
       .unsafeRunSync()
       .fold(throw _, identity)
 
@@ -82,7 +82,7 @@ class ReferersFromMapTest extends Specification {
     )
 
     val ioParser = CreateParser[IO]
-      .create(resource, referers)
+      .create(resource, ParsedReferers.fromDomainMap(referers))
       .unsafeRunSync()
       .fold(throw _, identity)
 

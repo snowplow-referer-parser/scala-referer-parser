@@ -1,0 +1,38 @@
+{
+  "chatbot": {
+    "ChatGPT": {
+      "domains": [
+        "chatgpt.com",
+        "chat.openai.com"
+      ],
+      "utm_sources": [
+        "chatgpt.com"
+      ]
+    },
+    "Perplexity": {
+      "domains": [
+        "perplexity.ai",
+        "www.perplexity.ai"
+      ],
+      "utm_sources": [
+        "perplexity.ai"
+      ]
+    },
+    "NoDomains": {
+      "domains": [],
+      "utm_sources": [
+        "nodomains.example"
+      ]
+    }
+  },
+  "search": {
+    "Google": {
+      "domains": [
+        "www.google.com"
+      ],
+      "parameters": [
+        "q"
+      ]
+    }
+  }
+}

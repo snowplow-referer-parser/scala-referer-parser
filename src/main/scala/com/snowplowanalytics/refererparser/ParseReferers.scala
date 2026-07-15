@@ -15,17 +15,24 @@ package com.snowplowanalytics.refererparser
 
 import cats.implicits._
 import io.circe._
-import io.circe.generic.semiauto._
 import io.circe.parser._
 
 /** Handles loading and storing referers */
 object ParseReferers {
   private final case class JsonEntry(
     domains: List[String],
-    parameters: Option[List[String]]
+    parameters: Option[List[String]],
+    utmSources: Option[List[String]]
   )
 
-  implicit private val jsonEntryDecoder: Decoder[JsonEntry] = deriveDecoder[JsonEntry]
+  // Using a manual decoder to avoid importing circe-generic-extras with Configuration.default.withSnakeCaseMemberNames
+  implicit private val jsonEntryDecoder: Decoder[JsonEntry] = Decoder.instance { c =>
+    for {
+      domains <- c.get[List[String]]("domains")
+      parameters <- c.get[Option[List[String]]]("parameters")
+      utmSources <- c.get[Option[List[String]]]("utm_sources")
+    } yield JsonEntry(domains, parameters, utmSources)
+  }
 
   private[refererparser] def loadJsonFromString(rawJson: String): Either[Exception, Map[String, RefererLookup]] =
     parse(rawJson).flatMap(loadJson)
@@ -37,7 +44,7 @@ object ParseReferers {
         entries.foldLeft(map) { (mapInner, sourceEntry) =>
           val (source, entry) = sourceEntry
           mapInner ++ entry.domains
-            .map(domain => domain -> RefererLookup(medium, source, entry.parameters.getOrElse(Nil)))
+            .map(domain => domain -> RefererLookup(medium, source, entry.parameters.getOrElse(Nil), entry.utmSources.getOrElse(Nil)))
         }
       }
     }

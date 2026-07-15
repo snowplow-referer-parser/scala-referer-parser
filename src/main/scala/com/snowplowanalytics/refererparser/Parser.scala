@@ -72,6 +72,26 @@ class Parser private[refererparser] (
   referersFromMap: Map[String, RefererLookup]
 ) {
 
+  // Reverse indexes mapping an injected `utm_source` value to the referer it identifies.
+  // Built from the same referer database entries, but keyed by `utmSources` rather than domain.
+  private val utmSourcesFromFile: Map[String, RefererLookup] = buildUtmSourceIndex(referersFromFile)
+  private val utmSourcesFromMap: Map[String, RefererLookup]  = buildUtmSourceIndex(referersFromMap)
+
+  private def buildUtmSourceIndex(referers: Map[String, RefererLookup]): Map[String, RefererLookup] =
+    referers.values.flatMap(lookup => lookup.utmSources.map(_ -> lookup)).toMap
+
+  /**
+   * Classifies an injected `utm_source` query parameter value (e.g. "chatgpt.com") against the
+   * referer database's `utmSources` entries. Unlike the `parse` methods, this does not look at the
+   * referer URI: some sites inject `utm_source` in place of (or in addition to) a Referer header.
+   * Returns `None` when the value is not recognised. The `term` is always `None` for now.
+   */
+  def parseUtmSource(utmSource: String): Option[ExternalReferer] =
+    utmSourcesFromMap
+      .get(utmSource)
+      .orElse(utmSourcesFromFile.get(utmSource))
+      .map(lookup => ExternalReferer(lookup.medium, lookup.source, None))
+
   private def toUri(uri: String): Option[URI] =
     if (uri == "")
       None

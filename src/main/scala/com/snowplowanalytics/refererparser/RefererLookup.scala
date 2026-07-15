@@ -17,5 +17,6 @@ package com.snowplowanalytics.refererparser
 final case class RefererLookup(
   medium: String,
   source: String,
-  parameters: List[String]
+  parameters: List[String],
+  utmSources: List[String] = Nil
 )

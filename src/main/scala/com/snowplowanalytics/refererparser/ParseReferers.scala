@@ -15,29 +15,42 @@ package com.snowplowanalytics.refererparser
 
 import cats.implicits._
 import io.circe._
-import io.circe.generic.semiauto._
 import io.circe.parser._
 
 /** Handles loading and storing referers */
 object ParseReferers {
   private final case class JsonEntry(
     domains: List[String],
-    parameters: Option[List[String]]
+    parameters: Option[List[String]],
+    utmSources: Option[List[String]]
   )
 
-  implicit private val jsonEntryDecoder: Decoder[JsonEntry] = deriveDecoder[JsonEntry]
+  // Using a manual decoder to avoid importing circe-generic-extras with Configuration.default.withSnakeCaseMemberNames
+  implicit private val jsonEntryDecoder: Decoder[JsonEntry] = Decoder.instance { c =>
+    for {
+      domains <- c.get[List[String]]("domains")
+      parameters <- c.get[Option[List[String]]]("parameters")
+      utmSources <- c.get[Option[List[String]]]("utm_sources")
+    } yield JsonEntry(domains, parameters, utmSources)
+  }
 
-  private[refererparser] def loadJsonFromString(rawJson: String): Either[Exception, Map[String, RefererLookup]] =
+  private[refererparser] def loadJsonFromString(rawJson: String): Either[Exception, ParsedReferers] =
     parse(rawJson).flatMap(loadJson)
 
-  def loadJson(doc: Json): Either[Exception, Map[String, RefererLookup]] =
+  def loadJson(doc: Json): Either[Exception, ParsedReferers] =
     parseReferersJson(doc.hcursor).map { parsed =>
-      parsed.foldLeft(Map.empty[String, RefererLookup]) { (map, mediumEntries) =>
+      parsed.foldLeft(ParsedReferers.empty) { (acc, mediumEntries) =>
         val (medium, entries) = mediumEntries
-        entries.foldLeft(map) { (mapInner, sourceEntry) =>
+        entries.foldLeft(acc) { (accInner, sourceEntry) =>
           val (source, entry) = sourceEntry
-          mapInner ++ entry.domains
-            .map(domain => domain -> RefererLookup(medium, source, entry.parameters.getOrElse(Nil)))
+          val lookup          = RefererLookup(medium, source, entry.parameters.getOrElse(Nil))
+          // The two indexes are built independently from the same entry: `byDomain` powers referer
+          // URI parsing, `byUtmSource` powers injected utm_source classification. Keeping them
+          // separate means a source's utm_sources are captured regardless of its domains.
+          ParsedReferers(
+            byDomain    = accInner.byDomain ++ entry.domains.map(_ -> lookup),
+            byUtmSource = accInner.byUtmSource ++ entry.utmSources.getOrElse(Nil).map(_ -> lookup)
+          )
         }
       }
     }

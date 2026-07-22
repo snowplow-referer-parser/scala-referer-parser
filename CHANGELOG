@@ -1,3 +1,7 @@
+Version 4.0.0 (2026-07-22)
+--------------------------
+Add capability to identify referer with utm_source (#133)
+
 Version 3.0.0 (2025-02-26)
 --------------------------
 Add write permission to Github Action for publishing Scaladoc (#132)

@@ -16,7 +16,7 @@ The Scala implementation is a core component of [Snowplow][snowplow], the open-s
 You can add the following to your SBT config:
 
 ```scala
-val refererParser = "com.snowplowanalytics" %% "scala-referer-parser" % "3.0.0"
+val refererParser = "com.snowplowanalytics" %% "scala-referer-parser" % "4.0.0"
 ```
 
 ### Usage
@@ -67,18 +67,47 @@ All known referers are returned as `ExternalReferer(medium, source, term)` where
 
 More examples can be seen in [ParseTest.scala][parsetest-scala]. See [Parser.scala][parser-scala] for all overloads.
 
+#### Classifying an injected `utm_source`
+
+Some sites advertise themselves through a `utm_source` query parameter rather than (or in addition to) a `Referer` header. `parser.parseUtmSource` classifies such a value against the `utm_sources` entries in the referers database, without looking at any referer URI:
+
+```scala
+parser.parseUtmSource("chatgpt.com")
+  // => Some(ExternalReferer("chatbot", "ChatGPT", None))
+
+parser.parseUtmSource("unknown.example")
+  // => None
+```
+
+The value is `None` for the `term`. To feed the lookup, add a `utm_sources` list alongside `domains` in the referers JSON:
+
+```json
+{
+  "chatbot": {
+    "ChatGPT": {
+      "domains": ["chatgpt.com", "chat.openai.com"],
+      "utm_sources": ["chatgpt.com"]
+    }
+  }
+}
+```
+
+`domains` and `utm_sources` are indexed independently, so a source's `utm_sources` are recognised even when it has no `domains`.
+
 #### Custom referers
 
-You can augment or override the built-in referers database by passing a `Map[String, RefererLookup]` to `CreateParser.create`. Entries in the map take precedence over entries from the file.
+You can augment or override the built-in referers database by passing a `ParsedReferers` to `CreateParser.create`. Entries you provide take precedence over entries from the file.
+
+`ParsedReferers` holds two independent indexes: `byDomain` (referer host/path -> referer, used by `parse`) and `byUtmSource` (`utm_source` value -> referer, used by `parseUtmSource`). If you only need domain-based lookups, wrap a map with `ParsedReferers.fromDomainMap`:
 
 ```scala
 import com.snowplowanalytics.refererparser._
 import cats.effect.IO
 
-val customReferers = Map(
+val customReferers = ParsedReferers.fromDomainMap(Map(
   "custom.search.com" -> RefererLookup("search", "Custom Search", List("q")),
   "www.google.com"    -> RefererLookup("social", "Google Custom", Nil) // overrides built-in
-)
+))
 
 val parser = CreateParser[IO]
   .create("/opt/referers/referers.json", customReferers)
@@ -86,24 +115,38 @@ val parser = CreateParser[IO]
   .fold(throw _, identity)
 ```
 
-If you don't need a referers file at all, use `Parser.fromMap`:
+To supply `utm_source` entries too, construct `ParsedReferers` directly:
+
+```scala
+val customReferers = ParsedReferers(
+  byDomain    = Map("chatgpt.com" -> RefererLookup("chatbot", "ChatGPT", Nil)),
+  byUtmSource = Map("chatgpt.com" -> RefererLookup("chatbot", "ChatGPT", Nil))
+)
+```
+
+If you don't need a referers file at all, use `Parser.fromMap` (domain lookups only) or `Parser.fromReferers` (to also provide `utm_sources`):
 
 ```scala
 val parser = Parser.fromMap(Map(
   "example.com" -> RefererLookup("search", "Example", List("q"))
 ))
+
+val parserWithUtm = Parser.fromReferers(ParsedReferers(
+  byDomain    = Map("example.com" -> RefererLookup("search", "Example", List("q"))),
+  byUtmSource = Map("example.com" -> RefererLookup("search", "Example", Nil))
+))
 ```
 
 #### Parsing a `Json` document directly
 
-`ParseReferers.loadJson` is public and lets you build the lookup map from an already-parsed Circe `Json` document:
+`ParseReferers.loadJson` is public and lets you build a `ParsedReferers` from an already-parsed Circe `Json` document:
 
 ```scala
-import com.snowplowanalytics.refererparser.ParseReferers
+import com.snowplowanalytics.refererparser.{ParseReferers, ParsedReferers}
 import io.circe.parser.parse
 
 val json = parse("""{"search":{"Google":{"domains":["google.com"],"parameters":["q"]}}}""").toOption.get
-val referers: Map[String, RefererLookup] = ParseReferers.loadJson(json).fold(throw _, identity)
+val referers: ParsedReferers = ParseReferers.loadJson(json).fold(throw _, identity)
 ```
 
 [parsetest-scala]: src/test/scala/com/snowplowanalytics/refererparser/ParseTest.scala

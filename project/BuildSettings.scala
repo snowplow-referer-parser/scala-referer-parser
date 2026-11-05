@@ -38,10 +38,7 @@ object BuildSettings {
     crossScalaVersions := List(scala212, scala213),
     scalafmtConfig := file(".scalafmt.conf"),
     scalafmtOnCompile := false,
-    scalacOptions ++= scalacOptionsVersion(scalaVersion.value),
-    resolvers ++= Seq(
-      "Snowplow Analytics Maven repo".at("http://maven.snplow.com/releases/").withAllowInsecureProtocol(true)
-    )
+    scalacOptions ++= scalacOptionsVersion(scalaVersion.value)
   )
 
   def scalacOptionsVersion(scalaVersion: String): Seq[String] = {
